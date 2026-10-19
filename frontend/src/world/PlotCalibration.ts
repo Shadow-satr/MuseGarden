@@ -5,11 +5,13 @@
  */
 export const PLOT_COLUMNS = 3;
 export const PLOT_ROWS = 2;
-export const PLOT_CELL_SIZE = 72;
-export const PLOT_CELL_GAP = 10;
-export const PLOT_EDGE_PADDING = 20;
-export const PLAYER_TO_PLOT_CELL_RATIO = 1.1;
-export const CALIBRATED_PLAYER_HEIGHT = Math.round(PLOT_CELL_SIZE * PLAYER_TO_PLOT_CELL_RATIO);
+// A soil cell is one flower's planting place. Keep the established 48px
+// garden-cell scale and the existing 58px player rather than enlarging either.
+export const PLOT_CELL_SIZE = 48;
+export const PLOT_CELL_GAP = 8;
+export const PLOT_EDGE_PADDING = 18;
+export const CALIBRATED_PLAYER_HEIGHT = 58;
+export const PLAYER_TO_PLOT_CELL_RATIO = CALIBRATED_PLAYER_HEIGHT / PLOT_CELL_SIZE;
 
 export interface PlotBounds {
   x: number;
