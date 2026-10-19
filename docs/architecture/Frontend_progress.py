@@ -288,3 +288,35 @@ Frontend Step 9 — Walking Animation
 TypeScript / Vite 构建通过。
 """
 
+
+STEP_10 = """
+Frontend Step 10 — Plot & Character Scale Calibration
+=====================================================
+
+目标：在进入大地图与摄像机工作前，先以一个清晰可见的 3 × 2 六格田地校准
+玩家、单格与田地整体的显示比例。
+
+实现：
+- frontend/src/world/PlotCalibration.ts 集中定义标准田地：3 列 × 2 行、每格 72px、
+  格间距 10px、外沿 20px。整块田地为 276 × 194px，在当前 768 × 480 的世界内
+  居中，占约 36% 的世界宽度，供浏览器实际检查。
+- WorldScene 在既有草地与世界实体之间绘制简洁泥土田地：统一田埂、六块等大的
+  深色土壤、轻量像素颗粒和投影。它是开发期的视觉原型，不声明新的后端 Plant Spot，
+  不改变 GardenRenderSpec 的 48px 逻辑网格、花朵记录或种植接口。
+- Player 继续使用原有女孩序列帧与脚底 anchor，实际可见高度从 58px 校准到 79px。
+  相对 72px 田地格短边为约 1.1 倍；动画帧、方向切换、速度、边界和脚底坐标保持。
+
+范围：没有摄像机、大地图、完整园区布局、道路、建筑、复杂装饰或新的种植能力。
+Flower / Music / AI Engine 与现有创作、查看记忆和音乐版本流程未修改。
+
+验证：正式前端 TypeScript / Vite 构建通过；Vitest 11 个测试文件、45 项测试通过。
+新增 PlotCalibration 单测覆盖田地 3 × 2 尺寸、居中占比、单格一致性和角色约 1.1 倍
+单格高度。2026-10-19 真实 Chrome 浏览器验收使用 1414 × 800 CSS 视口：页面显示
+“花园已就绪”，中央六格田地完整可见、人物脚底仍落在场景内且人物可见高度略高于一格；
+田地约占画布宽度的三分之一，周围保留可走草地。截图保存为
+development/test_artifacts/step10-plot-calibration.png（Git 忽略的验收产物）。
+
+遗留：本 Step 的田地是比例原型，尚未和后端稳定 Plant Spot 标识一一绑定；这将留给
+Step 11 的大地图坐标和 Step 13 的种植区域接入处理。
+"""
+

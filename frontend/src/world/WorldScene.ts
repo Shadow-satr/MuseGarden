@@ -2,6 +2,7 @@ import { Container, Graphics } from "pixi.js";
 
 import { createGardenScene, type PixelGarden } from "../rendering/flowers/gardenRenderer";
 import type { GardenRenderSpec } from "../rendering/flowers/types";
+import { PLOT_COLUMNS, PLOT_ROWS, plotCellBounds, standardPlotBounds } from "./PlotCalibration";
 
 const CELL_STABILITY_MS = 45;
 const CELL_CROSSFADE_MS = 125;
@@ -21,6 +22,7 @@ export class WorldScene {
   readonly container = new Container();
   readonly entities = new Container();
   private garden: PixelGarden;
+  private readonly calibrationPlot = new Graphics();
   private readonly outgoingCellHighlight = new Graphics();
   private readonly cellHighlight = new Graphics();
   private readonly cellSize: number;
@@ -44,11 +46,44 @@ export class WorldScene {
     this.garden.container.position.set(WORLD_EDGE_PADDING, WORLD_EDGE_PADDING);
     this.entities.position.set(WORLD_EDGE_PADDING, WORLD_EDGE_PADDING);
     this.entities.label = "world-entities";
+    this.calibrationPlot.label = "plot-scale-calibration-3x2";
+    this.drawCalibrationPlot(spec.pixel_width, spec.pixel_height);
+    this.calibrationPlot.position.set(WORLD_EDGE_PADDING, WORLD_EDGE_PADDING);
     this.outgoingCellHighlight.label = "previous-player-cell-highlight";
     this.outgoingCellHighlight.alpha = 0;
     this.cellHighlight.label = "player-cell-highlight";
     this.entities.addChild(this.outgoingCellHighlight, this.cellHighlight);
-    this.container.addChild(outerGround, this.garden.container, this.entities);
+    this.container.addChild(outerGround, this.garden.container, this.calibrationPlot, this.entities);
+  }
+
+  /** A single visual 3 × 2 reference field for Step 10; it has no game state. */
+  private drawCalibrationPlot(worldWidth: number, worldHeight: number): void {
+    const plot = standardPlotBounds(worldWidth, worldHeight);
+    this.calibrationPlot
+      .rect(plot.x + 4, plot.y + 6, plot.width, plot.height)
+      .fill({ color: "#183022", alpha: 0.32 })
+      .rect(plot.x, plot.y, plot.width, plot.height)
+      .fill("#c49352")
+      .rect(plot.x + 4, plot.y + 4, plot.width - 8, plot.height - 8)
+      .fill("#d6aa62");
+
+    for (let row = 0; row < PLOT_ROWS; row += 1) {
+      for (let column = 0; column < PLOT_COLUMNS; column += 1) {
+        const cell = plotCellBounds(column, row, plot);
+        this.calibrationPlot
+          .rect(cell.x + 3, cell.y + 4, cell.width, cell.height)
+          .fill({ color: "#4a3020", alpha: 0.35 })
+          .rect(cell.x, cell.y, cell.width, cell.height)
+          .fill("#725039")
+          .rect(cell.x + 4, cell.y + 4, cell.width - 8, cell.height - 8)
+          .fill("#805a3e");
+        // Restrained pixel texture keeps the field readable without introducing new art assets.
+        this.calibrationPlot
+          .rect(cell.x + 13, cell.y + 17, 4, 3).fill({ color: "#9a7150", alpha: 0.55 })
+          .rect(cell.x + cell.width - 21, cell.y + 34, 3, 4).fill({ color: "#523624", alpha: 0.5 })
+          .rect(cell.x + 29, cell.y + cell.height - 18, 5, 3).fill({ color: "#a27550", alpha: 0.4 });
+      }
+    }
   }
 
   setPlayerCell(playerX: number, playerY: number): void {

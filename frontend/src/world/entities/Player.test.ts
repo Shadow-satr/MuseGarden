@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Sprite, Texture } from "pixi.js";
 
-import { Player, type PlayerAnimations } from "./Player";
+import { PLAYER_HEIGHT, Player, type PlayerAnimations } from "./Player";
 
 function texture(): Texture {
   return new Texture({ source: Texture.WHITE.source });
@@ -35,7 +35,7 @@ describe("Player movement", () => {
     expect(sprite.texture).toBe(frames.front.idle);
     expect(sprite.anchor.x).toBe(0.5);
     expect(sprite.anchor.y).toBeCloseTo(376 / 384);
-    expect(sprite.height).toBeCloseTo(58 * 384 / 352);
+    expect(sprite.height).toBeCloseTo(PLAYER_HEIGHT * 384 / 352);
 
     player.setMovement(1, 0);
     for (let i = 0; i < 10; i += 1) player.update(50);

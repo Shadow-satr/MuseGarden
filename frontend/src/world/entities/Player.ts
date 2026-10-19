@@ -1,6 +1,7 @@
 import { Assets, Container, Rectangle, Sprite, Texture } from "pixi.js";
 
 import sheetData from "../../assets/player-walk-sheet.json";
+import { CALIBRATED_PLAYER_HEIGHT } from "../PlotCalibration";
 
 export type Facing = "front" | "left" | "right" | "back";
 
@@ -25,7 +26,7 @@ export interface PlayerAnimation {
 
 export type PlayerAnimations = Record<Facing, PlayerAnimation>;
 
-const PLAYER_HEIGHT = 58;
+export const PLAYER_HEIGHT = CALIBRATED_PLAYER_HEIGHT;
 const SPEED_PX_PER_SECOND = 120;
 const WALK_FPS = 9;
 const MAX_DELTA_MS = 100;
