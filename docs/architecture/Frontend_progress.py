@@ -1,6 +1,6 @@
 """MuseGarden Frontend 开发进度，按正式章节顺序记录。"""
 
-CURRENT_STATUS = "Frontend Step 9 — Walking Animation 已完成；四方向站立 + 6 帧走路序列已接入 Pixi Player。"
+CURRENT_STATUS = "Frontend Step 11 — World Coordinate & Camera Foundation 已完成；大世界与边界摄像机已接入，等待 Step 12 正式地图美术。"
 
 STEP_1 = """
 Frontend Step 1 — Garden World Shell
@@ -318,5 +318,48 @@ development/test_artifacts/step10-plot-calibration.png（Git 忽略的验收产�
 
 遗留：本 Step 的田地是比例原型，尚未和后端稳定 Plant Spot 标识一一绑定；这将留给
 Step 11 的大地图坐标和 Step 13 的种植区域接入处理。
+"""
+
+
+STEP_11 = """
+Frontend Step 11 — World Coordinate & Camera Foundation
+=======================================================
+
+目标：让世界尺寸大于可视区域，并在不修改实体世界坐标的前提下实现有边界的摄像机跟随；
+暂时继续使用简洁草地、现有花朵与 Step 10 的六格田地。
+
+实现：
+- 当前 frontend/src/assets/ 只有角色与走路序列帧，没有可直接接入的正式大地图素材。
+  因此临时世界使用 TEMPORARY_WORLD_MULTIPLIER = 2：逻辑可移动世界为 1536 × 960px，
+  既有可视区域保持 840 × 552px（含 36px 边沿），为 Step 12 替换地图美术留出接口。
+- WorldScene 新增 world-camera-content 容器。完整扩展草地背景在该容器内覆盖
+  1608 × 1032px（世界加边沿），继续绘制轻量格纹与草地点缀，移动时不会出现透明区、
+  黑边或未绘制区域。
+- Camera.ts 提供纯 cameraPositionFor 函数，根据玩家脚底所在的世界位置计算镜头，
+  以视口中心为目标并约束到世界四条边。WorldScene 只平移 world-camera-content；
+  Player、花朵、田地、交互目标和后端 GardenRenderSpec 坐标均不被摄像机改写。
+- Player 的移动边界扩展到 1536 × 960px，但其起点继续是原花园的中心 (384, 240)，
+  因而初始画面仍能看到六格田地、周围花朵和人物。现有花朵、田地、互动目标继续使用
+  原本 768 × 480px 内容坐标；离开该区域只是暂时的草地行走空间，不伪造新的 Plant Spot。
+- React 的标题、E 键提示和各 Overlay 位于 Pixi Canvas 外，保持屏幕坐标；键盘监听、
+  输入暂停和 World 销毁生命周期保持原有单一职责。
+
+比例保持：Player 58px、单格田地 48px、3 × 2 六格、8px 格间距、18px 外沿、
+田地整体 196 × 140px；移动速度与六帧走路动画未修改。
+
+验证：前端 TypeScript / Vite 构建通过；Vitest 12 个测试文件、48 项测试通过。
+新增 Camera 单测覆盖起点不移动、世界中部跟随以及四边 clamp。原有 GardenWorld
+键盘、交互、暂停、刷新测试继续通过，证明摄像机未改变脚底交互世界坐标。
+
+2026-10-19 真实 Chrome 浏览器验收使用 1414 × 800 CSS 视口：初始画面可见人物、
+六格田地及既有花朵；按住右方向键后人物回到视口中央附近而田地向左移动；继续走到
+右侧边界时人物自然偏离中心、草地仍完整填满画布。HTML 标题与右上角控制仍固定在
+屏幕位置。验收截图保存于 development/test_artifacts/step11-camera-start.png、
+step11-camera-follow.png、step11-camera-right-edge.png（均为 Git 忽略的产物）。
+在初始田地附近真实按 E 后，“留下一段记忆”面板与 textarea 正常打开；未提交创作，
+未写入后端数据。
+
+范围：未接入正式大地图图片、河流 / 建筑 / 树木 / 围栏碰撞、稳定地图田地标识、
+新增后端 Plant Spot、NPC、小地图或传送。这些留给 Step 12–14。
 """
 

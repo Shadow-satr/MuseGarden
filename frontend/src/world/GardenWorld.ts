@@ -2,7 +2,7 @@ import { Application } from "pixi.js";
 
 import { loadGarden, type GardenLoadResult } from "../api/garden";
 import type { GardenRenderSpec } from "../rendering/flowers/types";
-import { gardenViewportSize, WorldScene } from "./WorldScene";
+import { expandedWorldContentSize, gardenViewportSize, WorldScene } from "./WorldScene";
 import { loadPlayerAnimations, Player, type PlayerAnimations } from "./entities/Player";
 import { createInteractables, InteractionManager, type Interactable } from "./interactions";
 
@@ -96,6 +96,7 @@ export class GardenWorld {
     old.entities.removeChild(this.player.container);
     next.setPlayerCell(this.player.container.x, this.player.container.y);
     next.entities.addChild(this.player.container);
+    next.setCameraTarget(this.player.container.x, this.player.container.y);
     this.app.stage.removeChild(old.container);
     this.app.stage.addChild(next.container);
     old.destroy();
@@ -113,9 +114,16 @@ export class GardenWorld {
     if (this.disposed || !this.app) return;
     const targets = createInteractables(spec);
     const next = new WorldScene(spec);
-    const player = new Player(spec.pixel_width, spec.pixel_height, spec.cell_size, playerAnimations);
+    const worldSize = expandedWorldContentSize(spec);
+    // Keep the existing garden cluster visible at startup; the temporary large
+    // world expands outward from it for Step 11's camera exercise.
+    const player = new Player(worldSize.width, worldSize.height, spec.cell_size, playerAnimations, {
+      x: spec.pixel_width / 2,
+      y: spec.pixel_height / 2,
+    });
     next.setPlayerCell(player.container.x, player.container.y);
     next.entities.addChild(player.container);
+    next.setCameraTarget(player.container.x, player.container.y);
     const interactions = new InteractionManager(targets, this.onInteract);
     interactions.update(player.container.x, player.container.y);
     if (this.scene) {
@@ -143,6 +151,7 @@ export class GardenWorld {
       );
       this.player.update(ticker.deltaMS);
       this.scene?.setPlayerCell(this.player.container.x, this.player.container.y);
+      this.scene?.setCameraTarget(this.player.container.x, this.player.container.y);
       const before = this.interactions?.currentTarget?.id;
       const target = this.interactions?.update(this.player.container.x, this.player.container.y) ?? null;
       if (before !== target?.id) this.onTargetChange(target);

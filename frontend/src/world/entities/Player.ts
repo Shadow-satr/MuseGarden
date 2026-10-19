@@ -76,13 +76,14 @@ export class Player {
     private readonly worldHeight: number,
     private readonly cellSize: number,
     private readonly animations: PlayerAnimations,
+    initialPosition?: { x: number; y: number },
   ) {
     this.container.label = "player";
     this.sprite = new Sprite(animations.front.idle);
     this.sprite.anchor.set(0.5, SHEET.baseline / SHEET.frameHeight);
     this.setVisualSize();
     this.container.addChild(this.sprite);
-    this.container.position.set(worldWidth / 2, worldHeight / 2);
+    this.container.position.set(initialPosition?.x ?? worldWidth / 2, initialPosition?.y ?? worldHeight / 2);
     this.clampToWorld();
   }
 

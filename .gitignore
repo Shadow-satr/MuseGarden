@@ -4,6 +4,7 @@ __pycache__/
 /.pytest_cache/
 /.test-tmp-*/
 /.venv/
+/.music-companion-venv/
 
 # Temporary pip installation workspaces accidentally created in the project root
 /pip-*/

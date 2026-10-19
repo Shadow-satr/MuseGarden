@@ -2,6 +2,7 @@ import { Container, Graphics } from "pixi.js";
 
 import { createGardenScene, type PixelGarden } from "../rendering/flowers/gardenRenderer";
 import type { GardenRenderSpec } from "../rendering/flowers/types";
+import { cameraPositionFor } from "./Camera";
 import { PLOT_COLUMNS, PLOT_ROWS, plotCellBounds, standardPlotBounds } from "./PlotCalibration";
 
 const CELL_STABILITY_MS = 45;
@@ -9,6 +10,7 @@ const CELL_CROSSFADE_MS = 125;
 const CELL_DASH_LENGTH = 6;
 const CELL_DASH_GAP = 5;
 export const WORLD_EDGE_PADDING = 36;
+export const TEMPORARY_WORLD_MULTIPLIER = 2;
 
 export function gardenViewportSize(spec: GardenRenderSpec): { width: number; height: number } {
   return {
@@ -17,10 +19,44 @@ export function gardenViewportSize(spec: GardenRenderSpec): { width: number; hei
   };
 }
 
+export function expandedWorldSize(spec: GardenRenderSpec): { width: number; height: number } {
+  return {
+    width: spec.pixel_width * TEMPORARY_WORLD_MULTIPLIER + WORLD_EDGE_PADDING * 2,
+    height: spec.pixel_height * TEMPORARY_WORLD_MULTIPLIER + WORLD_EDGE_PADDING * 2,
+  };
+}
+
+export function expandedWorldContentSize(spec: GardenRenderSpec): { width: number; height: number } {
+  return {
+    width: spec.pixel_width * TEMPORARY_WORLD_MULTIPLIER,
+    height: spec.pixel_height * TEMPORARY_WORLD_MULTIPLIER,
+  };
+}
+
+function createExtendedGround(spec: GardenRenderSpec, width: number, height: number): Graphics {
+  const ground = new Graphics().rect(0, 0, width, height).fill(spec.background.base_color);
+  const columns = Math.ceil(width / spec.cell_size);
+  const rows = Math.ceil(height / spec.cell_size);
+  for (let y = 0; y < rows; y += 1) {
+    for (let x = 0; x < columns; x += 1) {
+      if ((x + y) % 2 === 0) {
+        ground.rect(x * spec.cell_size, y * spec.cell_size, spec.cell_size, spec.cell_size)
+          .fill({ color: spec.background.tile_color, alpha: 0.2 });
+      }
+      if ((x * 17 + y * 29) % 7 === 0) {
+        ground.rect(x * spec.cell_size + 9, y * spec.cell_size + 14, 3, 2)
+          .fill({ color: spec.background.accent_color, alpha: 0.5 });
+      }
+    }
+  }
+  return ground;
+}
+
 /** Owns Pixi display layers; future world entities belong in entities. */
 export class WorldScene {
   readonly container = new Container();
   readonly entities = new Container();
+  private readonly world = new Container();
   private garden: PixelGarden;
   private readonly calibrationPlot = new Graphics();
   private readonly outgoingCellHighlight = new Graphics();
@@ -33,15 +69,17 @@ export class WorldScene {
   private pendingSinceMs = 0;
   private transitionStartedMs = -1;
   private elapsedMs = 0;
+  private readonly viewport: { width: number; height: number };
+  private readonly worldSize: { width: number; height: number };
 
   constructor(spec: GardenRenderSpec) {
     this.container.label = "musegarden-world";
+    this.world.label = "world-camera-content";
     this.garden = createGardenScene(spec);
     this.cellSize = spec.cell_size;
-    const viewport = gardenViewportSize(spec);
-    const outerGround = new Graphics()
-      .rect(0, 0, viewport.width, viewport.height)
-      .fill(spec.background.base_color);
+    this.viewport = gardenViewportSize(spec);
+    this.worldSize = expandedWorldSize(spec);
+    const outerGround = createExtendedGround(spec, this.worldSize.width, this.worldSize.height);
     outerGround.label = "garden-edge-ground";
     this.garden.container.position.set(WORLD_EDGE_PADDING, WORLD_EDGE_PADDING);
     this.entities.position.set(WORLD_EDGE_PADDING, WORLD_EDGE_PADDING);
@@ -53,7 +91,18 @@ export class WorldScene {
     this.outgoingCellHighlight.alpha = 0;
     this.cellHighlight.label = "player-cell-highlight";
     this.entities.addChild(this.outgoingCellHighlight, this.cellHighlight);
-    this.container.addChild(outerGround, this.garden.container, this.calibrationPlot, this.entities);
+    this.world.addChild(outerGround, this.garden.container, this.calibrationPlot, this.entities);
+    this.container.addChild(this.world);
+  }
+
+  /** Focus the viewport without mutating any Player, flower, or plot world coordinate. */
+  setCameraTarget(playerX: number, playerY: number): void {
+    const camera = cameraPositionFor(
+      { x: playerX + WORLD_EDGE_PADDING, y: playerY + WORLD_EDGE_PADDING },
+      this.viewport,
+      this.worldSize,
+    );
+    this.world.position.set(-camera.x, -camera.y);
   }
 
   /** A single visual 3 × 2 reference field for Step 10; it has no game state. */
@@ -158,7 +207,7 @@ export class WorldScene {
   }
 
   destroy(): void {
-    this.container.removeChild(this.garden.container);
+    this.world.removeChild(this.garden.container);
     this.garden.destroy();
     this.container.destroy({ children: true });
   }
