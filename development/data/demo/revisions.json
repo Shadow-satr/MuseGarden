@@ -1,0 +1,102 @@
+[
+  {
+    "id": "76be2a9f-dc2c-4ed9-bff4-d0feec5ce9e0",
+    "draft_id": "4c509424-ee17-4f54-ac5a-9bc797576936",
+    "version": 1,
+    "edit_instruction": null,
+    "blueprint": {
+      "primary_emotion": "achievement",
+      "secondary_emotions": [
+        "tiredness"
+      ],
+      "energy": 0.8,
+      "valence": 0.7,
+      "tempo": 108,
+      "key": "C Major",
+      "instruments": [
+        "piano",
+        "violin",
+        "guitar"
+      ],
+      "texture": "joyful",
+      "scene": "celebration",
+      "progression": "calm_to_rising"
+    },
+    "created_at": "2026-09-29T16:06:12.808673+08:00"
+  },
+  {
+    "id": "2eaf61e9-fea7-4210-a6ec-2bd4946e994e",
+    "draft_id": "75b896a3-d594-4a28-aa44-9d75c2ae2418",
+    "version": 1,
+    "edit_instruction": null,
+    "blueprint": {
+      "primary_emotion": "anger",
+      "secondary_emotions": [
+        "disappointment"
+      ],
+      "energy": 0.7,
+      "valence": 0.2,
+      "tempo": 120,
+      "key": "A Minor",
+      "instruments": [
+        "piano",
+        "acoustic_guitar",
+        "bass"
+      ],
+      "texture": "dramatic",
+      "scene": "quiet_room",
+      "progression": "calm_to_rising"
+    },
+    "created_at": "2026-09-29T16:08:34.260444+08:00"
+  },
+  {
+    "id": "0e83b227-a3f6-45cb-a899-e40bb70f5500",
+    "draft_id": "75b896a3-d594-4a28-aa44-9d75c2ae2418",
+    "version": 2,
+    "edit_instruction": "不是要愤怒，我是要安慰我的情绪",
+    "blueprint": {
+      "primary_emotion": "calm",
+      "secondary_emotions": [
+        "disappointment"
+      ],
+      "energy": 0.3,
+      "valence": 0.5,
+      "tempo": 100,
+      "key": "A Minor",
+      "instruments": [
+        "piano",
+        "acoustic_guitar",
+        "bass"
+      ],
+      "texture": "soothing",
+      "scene": "quiet_room",
+      "progression": "calm"
+    },
+    "created_at": "2026-09-29T16:09:16.734657+08:00"
+  },
+  {
+    "id": "392ae073-043f-4761-8a57-229f96da6c87",
+    "draft_id": "75b896a3-d594-4a28-aa44-9d75c2ae2418",
+    "version": 3,
+    "edit_instruction": "恢复历史版本 V1（系统操作）",
+    "blueprint": {
+      "primary_emotion": "anger",
+      "secondary_emotions": [
+        "disappointment"
+      ],
+      "energy": 0.7,
+      "valence": 0.2,
+      "tempo": 120,
+      "key": "A Minor",
+      "instruments": [
+        "piano",
+        "acoustic_guitar",
+        "bass"
+      ],
+      "texture": "dramatic",
+      "scene": "quiet_room",
+      "progression": "calm_to_rising"
+    },
+    "created_at": "2026-09-29T16:09:46.751707+08:00"
+  }
+]

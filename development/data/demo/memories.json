@@ -1,0 +1,32 @@
+[
+  {
+    "id": "75b896a3-d594-4a28-aa44-9d75c2ae2418",
+    "text": "女朋友好久没回我消息了，烦的要死",
+    "emotion": {
+      "primary_emotion": "愤怒",
+      "secondary_emotions": [
+        "失望"
+      ],
+      "scene": "与女朋友相关的个人关系"
+    },
+    "blueprint": {
+      "primary_emotion": "anger",
+      "secondary_emotions": [
+        "disappointment"
+      ],
+      "energy": 0.7,
+      "valence": 0.2,
+      "tempo": 120,
+      "key": "A Minor",
+      "instruments": [
+        "piano",
+        "acoustic_guitar",
+        "bass"
+      ],
+      "texture": "dramatic",
+      "scene": "quiet_room",
+      "progression": "calm_to_rising"
+    },
+    "created_at": "2026-09-29T16:10:10.662677+08:00"
+  }
+]

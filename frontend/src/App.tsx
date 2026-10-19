@@ -1,0 +1,250 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import {
+  createMemory, CreationResponseError, loadFlowerMemory, reviseFlowerMusic, selectFlowerMusicVersion,
+  type CreationDraft, type CreationResult, type FlowerMemory,
+} from "./api/creation";
+import { GardenWorldView } from "./components/GardenWorldView";
+import { CreationOverlay, type CreationStatus } from "./ui/CreationOverlay";
+import { FlowerDetailOverlay } from "./ui/FlowerDetailOverlay";
+import { WorldOverlay } from "./ui/WorldOverlay";
+import type { Interactable } from "./world/interactions";
+import type { GardenWorld } from "./world/GardenWorld";
+
+function App() {
+  const [target, setTarget] = useState<Interactable | null>(null);
+  const [selectedPlantSpot, setSelectedPlantSpot] = useState<Extract<Interactable, { kind: "plant-spot" }> | null>(null);
+  const [interactionMessage, setInteractionMessage] = useState("");
+  const [creationStatus, setCreationStatus] = useState<CreationStatus>("idle");
+  const [creationResult, setCreationResult] = useState<CreationResult | null>(null);
+  const [creationError, setCreationError] = useState("");
+  const [selectedFlower, setSelectedFlower] = useState<Extract<Interactable, { kind: "flower" }> | null>(null);
+  const [flowerMemory, setFlowerMemory] = useState<FlowerMemory | null>(null);
+  const [flowerDetailStatus, setFlowerDetailStatus] = useState<"loading" | "success" | "error">("loading");
+  const [flowerDetailError, setFlowerDetailError] = useState("");
+  const [revisionStatus, setRevisionStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [revisionError, setRevisionError] = useState("");
+  const [selectingAudioId, setSelectingAudioId] = useState<string | null>(null);
+  const pendingRequest = useRef<AbortController | null>(null);
+  const flowerDetailRequest = useRef<AbortController | null>(null);
+  const musicRequest = useRef<AbortController | null>(null);
+  const worldRef = useRef<GardenWorld | null>(null);
+  const overlayOpen = selectedPlantSpot !== null || selectedFlower !== null;
+  const onWorldReady = useCallback((world: GardenWorld | null) => { worldRef.current = world; }, []);
+  useEffect(() => () => {
+    pendingRequest.current?.abort();
+    pendingRequest.current = null;
+    flowerDetailRequest.current?.abort();
+    flowerDetailRequest.current = null;
+    musicRequest.current?.abort();
+    musicRequest.current = null;
+  }, []);
+  const onTargetChange = useCallback((next: Interactable | null) => {
+    setTarget(next);
+    setInteractionMessage("");
+  }, []);
+  const readFlowerMemory = useCallback(async (flower: Extract<Interactable, { kind: "flower" }>) => {
+    flowerDetailRequest.current?.abort();
+    const controller = new AbortController();
+    flowerDetailRequest.current = controller;
+    setFlowerDetailStatus("loading");
+    setFlowerDetailError("");
+    setFlowerMemory(null);
+    setRevisionStatus("idle");
+    setRevisionError("");
+    setSelectingAudioId(null);
+    try {
+      const memory = await loadFlowerMemory(flower.plantingRecordId, flower.flowerArtifactId, controller.signal);
+      if (flowerDetailRequest.current !== controller) return;
+      setFlowerMemory(memory);
+      setFlowerDetailStatus("success");
+    } catch (error) {
+      if (flowerDetailRequest.current !== controller || controller.signal.aborted) return;
+      setFlowerDetailError(error instanceof Error ? error.message : "记忆详情加载失败");
+      setFlowerDetailStatus("error");
+    } finally {
+      if (flowerDetailRequest.current === controller) flowerDetailRequest.current = null;
+    }
+  }, []);
+  const onInteract = useCallback((current: Interactable) => {
+    if (current.kind === "plant-spot") {
+      setSelectedPlantSpot(current);
+      setInteractionMessage("");
+      setCreationStatus("idle");
+      setCreationResult(null);
+      setCreationError("");
+    } else {
+      setSelectedFlower(current);
+      setInteractionMessage("");
+      void readFlowerMemory(current);
+    }
+  }, [readFlowerMemory]);
+  const onCloseFlowerDetail = useCallback(() => {
+    flowerDetailRequest.current?.abort();
+    flowerDetailRequest.current = null;
+    musicRequest.current?.abort();
+    musicRequest.current = null;
+    setSelectedFlower(null);
+    setFlowerMemory(null);
+    setFlowerDetailError("");
+    setRevisionStatus("idle");
+    setRevisionError("");
+    setSelectingAudioId(null);
+    setInteractionMessage("");
+  }, []);
+  const onReviseFlowerMusic = useCallback(async (modificationText: string): Promise<boolean> => {
+    const memory = flowerMemory;
+    if (!memory || musicRequest.current) return false;
+    const controller = new AbortController();
+    musicRequest.current = controller;
+    setRevisionStatus("loading");
+    setRevisionError("");
+    try {
+      const updated = await reviseFlowerMusic(memory.creation_id, modificationText, controller.signal);
+      if (musicRequest.current !== controller) return false;
+      setFlowerMemory(updated);
+      setRevisionStatus("idle");
+      return true;
+    } catch (error) {
+      if (musicRequest.current !== controller || controller.signal.aborted) return false;
+      setRevisionError(error instanceof Error ? error.message : "新版音乐生成失败");
+      setRevisionStatus("error");
+      return false;
+    } finally {
+      if (musicRequest.current === controller) musicRequest.current = null;
+    }
+  }, [flowerMemory]);
+  const onSelectFlowerMusic = useCallback(async (audioArtifactId: string): Promise<void> => {
+    const memory = flowerMemory;
+    if (!memory || musicRequest.current || memory.music?.artifact_id === audioArtifactId) return;
+    const controller = new AbortController();
+    musicRequest.current = controller;
+    setSelectingAudioId(audioArtifactId);
+    setRevisionStatus("idle");
+    setRevisionError("");
+    try {
+      const updated = await selectFlowerMusicVersion(memory.creation_id, audioArtifactId, controller.signal);
+      if (musicRequest.current === controller) {
+        setFlowerMemory(updated);
+        setRevisionStatus("idle");
+      }
+    } catch (error) {
+      if (musicRequest.current === controller && !controller.signal.aborted) {
+        setRevisionError(error instanceof Error ? error.message : "音乐版本切换失败");
+        setRevisionStatus("error");
+      }
+    } finally {
+      if (musicRequest.current === controller) {
+        musicRequest.current = null;
+        setSelectingAudioId(null);
+      }
+    }
+  }, [flowerMemory]);
+  const onCancelCreation = useCallback(() => {
+    pendingRequest.current?.abort();
+    pendingRequest.current = null;
+    setSelectedPlantSpot(null);
+    setInteractionMessage("");
+    setCreationStatus("idle");
+    setCreationResult(null);
+    setCreationError("");
+  }, []);
+  const onCreate = useCallback(async (draft: CreationDraft) => {
+    if (pendingRequest.current) return;
+    const world = worldRef.current;
+    const gardenId = world?.currentGardenId;
+    if (!world || !gardenId) {
+      setCreationError("花园尚未就绪，请稍后重试");
+      setCreationStatus("error");
+      return;
+    }
+    const controller = new AbortController();
+    pendingRequest.current = controller;
+    setCreationStatus("loading");
+    setCreationError("");
+    try {
+      const result = await createMemory(gardenId, draft, controller.signal);
+      if (pendingRequest.current !== controller) return;
+      setCreationResult(result);
+      setCreationStatus("syncing");
+      try {
+        await world.refreshGarden({
+          recordId: result.planting.record_id,
+          flowerArtifactId: result.flower.artifact_id,
+          x: result.planting.x,
+          y: result.planting.y,
+        }, controller.signal);
+        if (pendingRequest.current === controller) setCreationStatus("success");
+      } catch (error) {
+        if (pendingRequest.current !== controller) return;
+        setCreationError(error instanceof Error ? error.message : "花园刷新失败");
+        setCreationStatus("refresh-error");
+      }
+    } catch (error) {
+      if (pendingRequest.current !== controller) return;
+      if (error instanceof CreationResponseError) {
+        try { await world.refreshGarden(undefined, controller.signal); } catch { /* Keep the original response error. */ }
+        if (pendingRequest.current !== controller) return;
+        setCreationError(error.message);
+        setCreationStatus("result-error");
+        return;
+      }
+      setCreationError(error instanceof Error ? error.message : "提交失败，请重试");
+      setCreationStatus("error");
+    } finally {
+      if (pendingRequest.current === controller) pendingRequest.current = null;
+    }
+  }, []);
+  const onRetryRefresh = useCallback(async () => {
+    const world = worldRef.current;
+    const result = creationResult;
+    if (!world || !result || pendingRequest.current) return;
+    const controller = new AbortController();
+    pendingRequest.current = controller;
+    setCreationStatus("syncing");
+    setCreationError("");
+    try {
+      await world.refreshGarden({
+        recordId: result.planting.record_id,
+        flowerArtifactId: result.flower.artifact_id,
+        x: result.planting.x,
+        y: result.planting.y,
+      }, controller.signal);
+      if (pendingRequest.current === controller) setCreationStatus("success");
+    } catch (error) {
+      if (pendingRequest.current === controller) {
+        setCreationError(error instanceof Error ? error.message : "花园刷新失败");
+        setCreationStatus("refresh-error");
+      }
+    } finally {
+      if (pendingRequest.current === controller) pendingRequest.current = null;
+    }
+  }, [creationResult]);
+  return <main className="world-shell">
+    <WorldOverlay target={overlayOpen ? null : target} interactionMessage={interactionMessage} />
+    <GardenWorldView onTargetChange={onTargetChange} onInteract={onInteract} onReady={onWorldReady} paused={overlayOpen} />
+    {selectedPlantSpot && <CreationOverlay
+      plantSpotId={selectedPlantSpot.id}
+      status={creationStatus}
+      result={creationResult}
+      error={creationError}
+      onCancel={onCancelCreation}
+      onCreate={onCreate}
+      onRetryRefresh={onRetryRefresh}
+    />}
+    {selectedFlower && <FlowerDetailOverlay
+      status={flowerDetailStatus}
+      memory={flowerMemory}
+      error={flowerDetailError}
+      revisionStatus={revisionStatus}
+      revisionError={revisionError}
+      selectingAudioId={selectingAudioId}
+      onClose={onCloseFlowerDetail}
+      onRetry={() => { void readFlowerMemory(selectedFlower); }}
+      onRevise={onReviseFlowerMusic}
+      onSelectVersion={onSelectFlowerMusic}
+    />}
+  </main>;
+}
+
+export default App;

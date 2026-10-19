@@ -1,0 +1,130 @@
+import { Container, Graphics } from "pixi.js";
+
+import { createGardenScene, type PixelGarden } from "../rendering/flowers/gardenRenderer";
+import type { GardenRenderSpec } from "../rendering/flowers/types";
+
+const CELL_STABILITY_MS = 45;
+const CELL_CROSSFADE_MS = 125;
+const CELL_DASH_LENGTH = 6;
+const CELL_DASH_GAP = 5;
+export const WORLD_EDGE_PADDING = 36;
+
+export function gardenViewportSize(spec: GardenRenderSpec): { width: number; height: number } {
+  return {
+    width: spec.pixel_width + WORLD_EDGE_PADDING * 2,
+    height: spec.pixel_height + WORLD_EDGE_PADDING * 2,
+  };
+}
+
+/** Owns Pixi display layers; future world entities belong in entities. */
+export class WorldScene {
+  readonly container = new Container();
+  readonly entities = new Container();
+  private garden: PixelGarden;
+  private readonly outgoingCellHighlight = new Graphics();
+  private readonly cellHighlight = new Graphics();
+  private readonly cellSize: number;
+  private highlightedGridX = -1;
+  private highlightedGridY = -1;
+  private pendingGridX = -1;
+  private pendingGridY = -1;
+  private pendingSinceMs = 0;
+  private transitionStartedMs = -1;
+  private elapsedMs = 0;
+
+  constructor(spec: GardenRenderSpec) {
+    this.container.label = "musegarden-world";
+    this.garden = createGardenScene(spec);
+    this.cellSize = spec.cell_size;
+    const viewport = gardenViewportSize(spec);
+    const outerGround = new Graphics()
+      .rect(0, 0, viewport.width, viewport.height)
+      .fill(spec.background.base_color);
+    outerGround.label = "garden-edge-ground";
+    this.garden.container.position.set(WORLD_EDGE_PADDING, WORLD_EDGE_PADDING);
+    this.entities.position.set(WORLD_EDGE_PADDING, WORLD_EDGE_PADDING);
+    this.entities.label = "world-entities";
+    this.outgoingCellHighlight.label = "previous-player-cell-highlight";
+    this.outgoingCellHighlight.alpha = 0;
+    this.cellHighlight.label = "player-cell-highlight";
+    this.entities.addChild(this.outgoingCellHighlight, this.cellHighlight);
+    this.container.addChild(outerGround, this.garden.container, this.entities);
+  }
+
+  setPlayerCell(playerX: number, playerY: number): void {
+    const gridX = Math.floor(playerX / this.cellSize);
+    const gridY = Math.floor(playerY / this.cellSize);
+    if (this.highlightedGridX < 0) {
+      this.highlightedGridX = gridX;
+      this.highlightedGridY = gridY;
+      this.pendingGridX = gridX;
+      this.pendingGridY = gridY;
+      this.drawCell(this.cellHighlight, gridX, gridY);
+      this.cellHighlight.alpha = 1;
+      return;
+    }
+    if (gridX === this.pendingGridX && gridY === this.pendingGridY) return;
+    this.pendingGridX = gridX;
+    this.pendingGridY = gridY;
+    this.pendingSinceMs = this.elapsedMs;
+  }
+
+  private drawCell(graphics: Graphics, gridX: number, gridY: number): void {
+    const inset = 2;
+    const left = gridX * this.cellSize + inset;
+    const top = gridY * this.cellSize + inset;
+    const right = (gridX + 1) * this.cellSize - inset;
+    const bottom = (gridY + 1) * this.cellSize - inset;
+    graphics.clear()
+      .rect(left, top, right - left, bottom - top)
+      .fill({ color: "#eee8cf", alpha: 0.03 });
+    this.drawDashedLine(graphics, left, top, right, top);
+    this.drawDashedLine(graphics, right, top, right, bottom);
+    this.drawDashedLine(graphics, right, bottom, left, bottom);
+    this.drawDashedLine(graphics, left, bottom, left, top);
+    graphics.stroke({ color: "#eee8cf", alpha: 0.3, width: 1.35 });
+  }
+
+  private drawDashedLine(graphics: Graphics, fromX: number, fromY: number, toX: number, toY: number): void {
+    const length = Math.hypot(toX - fromX, toY - fromY);
+    const directionX = (toX - fromX) / length;
+    const directionY = (toY - fromY) / length;
+    for (let distance = 0; distance < length; distance += CELL_DASH_LENGTH + CELL_DASH_GAP) {
+      const dashEnd = Math.min(length, distance + CELL_DASH_LENGTH);
+      graphics
+        .moveTo(fromX + directionX * distance, fromY + directionY * distance)
+        .lineTo(fromX + directionX * dashEnd, fromY + directionY * dashEnd);
+    }
+  }
+
+  update(elapsedMs: number): void {
+    this.elapsedMs = elapsedMs;
+    this.garden.update(elapsedMs);
+    if ((this.pendingGridX !== this.highlightedGridX || this.pendingGridY !== this.highlightedGridY) &&
+        elapsedMs - this.pendingSinceMs >= CELL_STABILITY_MS) {
+      this.drawCell(this.outgoingCellHighlight, this.highlightedGridX, this.highlightedGridY);
+      this.outgoingCellHighlight.alpha = 1;
+      this.highlightedGridX = this.pendingGridX;
+      this.highlightedGridY = this.pendingGridY;
+      this.drawCell(this.cellHighlight, this.highlightedGridX, this.highlightedGridY);
+      this.cellHighlight.alpha = 0;
+      this.transitionStartedMs = elapsedMs;
+    }
+    if (this.transitionStartedMs < 0) return;
+    const progress = Math.min(1, (elapsedMs - this.transitionStartedMs) / CELL_CROSSFADE_MS);
+    const eased = progress * progress * (3 - 2 * progress);
+    this.outgoingCellHighlight.alpha = 1 - eased;
+    this.cellHighlight.alpha = eased;
+    if (progress === 1) {
+      this.outgoingCellHighlight.clear();
+      this.outgoingCellHighlight.alpha = 0;
+      this.transitionStartedMs = -1;
+    }
+  }
+
+  destroy(): void {
+    this.container.removeChild(this.garden.container);
+    this.garden.destroy();
+    this.container.destroy({ children: true });
+  }
+}

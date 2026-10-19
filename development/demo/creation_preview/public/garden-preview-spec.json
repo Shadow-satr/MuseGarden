@@ -1,0 +1,575 @@
+{
+  "renderer_schema_version": "1.0",
+  "garden_id": "49b950c5-f0fa-58c8-b8d7-03797d73638f",
+  "grid_width": 16,
+  "grid_height": 10,
+  "cell_size": 48,
+  "pixel_width": 768,
+  "pixel_height": 480,
+  "background": {
+    "style": "meadow",
+    "base_color": "#294C35",
+    "tile_color": "#315A3D",
+    "accent_color": "#6F8A55"
+  },
+  "flowers": [
+    {
+      "planting_record_id": "1d5c27bd-e905-5d3f-87f2-a8862a2f6efe",
+      "flower_artifact_id": "03004f22-5735-5be7-b3d7-4453bc0eb036",
+      "template_id": "sunflower_v1",
+      "grid_x": 11,
+      "grid_y": 1,
+      "pixel_x": 552.0,
+      "pixel_y": 96.0,
+      "scale": 1.25,
+      "z_index": 27,
+      "render_spec": {
+        "renderer_schema_version": "1.0",
+        "template_id": "sunflower_v1",
+        "species": "sunflower",
+        "variation_seed": 9103,
+        "colors": {
+          "petal_primary": "#D4A62C",
+          "petal_secondary": "#A3671B",
+          "petal_highlight": "#ECCF67",
+          "flower_center": "#6E512A",
+          "stem": "#47704B",
+          "leaf": "#5F8A58",
+          "glow": "#ECD589",
+          "particle": "#ECDEA5"
+        },
+        "geometry": {
+          "bloom_shape": "radial_disc",
+          "leaf_shape": "broad_heart",
+          "petal_count": 14,
+          "bloom_scale_x": 1.2441,
+          "bloom_scale_y": 1.3718,
+          "stem_height_ratio": 0.82,
+          "stem_curve": 0.6875,
+          "leaf_count": 4,
+          "leaf_angle_offset": 10.4,
+          "anchor_x": 0.5,
+          "anchor_y": 1.0
+        },
+        "animation": {
+          "sway_amplitude": 0.0446,
+          "sway_period_ms": 2616,
+          "sway_phase": 0.664726,
+          "glow_opacity": 0.2405,
+          "glow_radius_ratio": 0.0666,
+          "particle_rate": 0.0,
+          "particle_phase": 0.211474
+        },
+        "particle_effect": "soft_glow",
+        "decoration": "leaf_sprigs",
+        "growth_direction": "rising",
+        "layer_order": [
+          "shadow",
+          "stem",
+          "leaves",
+          "bloom_back",
+          "bloom_front",
+          "decoration",
+          "glow",
+          "particles"
+        ]
+      }
+    },
+    {
+      "planting_record_id": "31c5b6ae-4880-50ab-b0b3-ea522932e65b",
+      "flower_artifact_id": "27629e9f-e3b7-59ae-b236-fb4afa29a41d",
+      "template_id": "rose_v1",
+      "grid_x": 2,
+      "grid_y": 2,
+      "pixel_x": 120.0,
+      "pixel_y": 144.0,
+      "scale": 1.1,
+      "z_index": 34,
+      "render_spec": {
+        "renderer_schema_version": "1.0",
+        "template_id": "rose_v1",
+        "species": "rose",
+        "variation_seed": 9101,
+        "colors": {
+          "petal_primary": "#B44667",
+          "petal_secondary": "#7B3451",
+          "petal_highlight": "#F17F98",
+          "flower_center": "#F1B24A",
+          "stem": "#47704B",
+          "leaf": "#5F8A58",
+          "glow": "#F595AA",
+          "particle": "#FFB3C3"
+        },
+        "geometry": {
+          "bloom_shape": "rosette",
+          "leaf_shape": "serrated",
+          "petal_count": 12,
+          "bloom_scale_x": 1.0984,
+          "bloom_scale_y": 1.0969,
+          "stem_height_ratio": 0.7,
+          "stem_curve": 0.9828,
+          "leaf_count": 4,
+          "leaf_angle_offset": 2.48,
+          "anchor_x": 0.5,
+          "anchor_y": 1.0
+        },
+        "animation": {
+          "sway_amplitude": 0.0368,
+          "sway_period_ms": 2928,
+          "sway_phase": 0.381882,
+          "glow_opacity": 0.1625,
+          "glow_radius_ratio": 0.045,
+          "particle_rate": 3.5,
+          "particle_phase": 0.493733
+        },
+        "particle_effect": "sparkles",
+        "decoration": "dew_drops",
+        "growth_direction": "rising",
+        "layer_order": [
+          "shadow",
+          "stem",
+          "leaves",
+          "bloom_back",
+          "bloom_front",
+          "decoration",
+          "glow",
+          "particles"
+        ]
+      }
+    },
+    {
+      "planting_record_id": "f83b266a-e099-543e-a9d3-7eab6768fbbf",
+      "flower_artifact_id": "54744899-52fd-553a-9e68-080999adff1c",
+      "template_id": "peony_v1",
+      "grid_x": 6,
+      "grid_y": 2,
+      "pixel_x": 312.0,
+      "pixel_y": 144.0,
+      "scale": 1.21,
+      "z_index": 38,
+      "render_spec": {
+        "renderer_schema_version": "1.0",
+        "template_id": "peony_v1",
+        "species": "peony",
+        "variation_seed": 9102,
+        "colors": {
+          "petal_primary": "#DDA845",
+          "petal_secondary": "#A26F33",
+          "petal_highlight": "#F9D473",
+          "flower_center": "#7A4F27",
+          "stem": "#47704B",
+          "leaf": "#5F8A58",
+          "glow": "#FBDB7E",
+          "particle": "#FFE9A7"
+        },
+        "geometry": {
+          "bloom_shape": "rounded_layered",
+          "leaf_shape": "broad_lobed",
+          "petal_count": 14,
+          "bloom_scale_x": 1.1422,
+          "bloom_scale_y": 1.1917,
+          "stem_height_ratio": 0.62,
+          "stem_curve": 0.1076,
+          "leaf_count": 5,
+          "leaf_angle_offset": -3.31,
+          "anchor_x": 0.5,
+          "anchor_y": 1.0
+        },
+        "animation": {
+          "sway_amplitude": 0.0407,
+          "sway_period_ms": 2772,
+          "sway_phase": 0.117607,
+          "glow_opacity": 0.2015,
+          "glow_radius_ratio": 0.0558,
+          "particle_rate": 0.0,
+          "particle_phase": 0.349038
+        },
+        "particle_effect": "soft_glow",
+        "decoration": "dew_drops",
+        "growth_direction": "opening",
+        "layer_order": [
+          "shadow",
+          "stem",
+          "leaves",
+          "bloom_back",
+          "bloom_front",
+          "decoration",
+          "glow",
+          "particles"
+        ]
+      }
+    },
+    {
+      "planting_record_id": "030326b5-138e-5703-a3ea-b2129acbd6e9",
+      "flower_artifact_id": "b2d05c79-090b-544c-b9d0-2de1eb8df252",
+      "template_id": "tulip_v1",
+      "grid_x": 14,
+      "grid_y": 3,
+      "pixel_x": 696.0,
+      "pixel_y": 192.0,
+      "scale": 1.04,
+      "z_index": 62,
+      "render_spec": {
+        "renderer_schema_version": "1.0",
+        "template_id": "tulip_v1",
+        "species": "tulip",
+        "variation_seed": 9104,
+        "colors": {
+          "petal_primary": "#E1AC49",
+          "petal_secondary": "#A67337",
+          "petal_highlight": "#FDD877",
+          "flower_center": "#7A4F27",
+          "stem": "#47704B",
+          "leaf": "#5F8A58",
+          "glow": "#FFDF82",
+          "particle": "#FFEDAB"
+        },
+        "geometry": {
+          "bloom_shape": "cup",
+          "leaf_shape": "lance",
+          "petal_count": 6,
+          "bloom_scale_x": 1.0911,
+          "bloom_scale_y": 1.0294,
+          "stem_height_ratio": 0.72,
+          "stem_curve": 0.0056,
+          "leaf_count": 2,
+          "leaf_angle_offset": -2.22,
+          "anchor_x": 0.5,
+          "anchor_y": 1.0
+        },
+        "animation": {
+          "sway_amplitude": 0.0485,
+          "sway_period_ms": 2460,
+          "sway_phase": 0.931948,
+          "glow_opacity": 0.2795,
+          "glow_radius_ratio": 0.0774,
+          "particle_rate": 3.5,
+          "particle_phase": 0.575316
+        },
+        "particle_effect": "sparkles",
+        "decoration": "dew_drops",
+        "growth_direction": "opening",
+        "layer_order": [
+          "shadow",
+          "stem",
+          "leaves",
+          "bloom_back",
+          "bloom_front",
+          "decoration",
+          "glow",
+          "particles"
+        ]
+      }
+    },
+    {
+      "planting_record_id": "cf94c63e-42d2-581c-8136-9adcd0d4e30c",
+      "flower_artifact_id": "09cb070c-a65d-560a-abf7-92fc659640e0",
+      "template_id": "lily_v1",
+      "grid_x": 9,
+      "grid_y": 4,
+      "pixel_x": 456.0,
+      "pixel_y": 240.0,
+      "scale": 1.08,
+      "z_index": 73,
+      "render_spec": {
+        "renderer_schema_version": "1.0",
+        "template_id": "lily_v1",
+        "species": "lily",
+        "variation_seed": 9106,
+        "colors": {
+          "petal_primary": "#E6ECF1",
+          "petal_secondary": "#B3C0CD",
+          "petal_highlight": "#FFFFFD",
+          "flower_center": "#D8BD66",
+          "stem": "#47704B",
+          "leaf": "#5F8A58",
+          "glow": "#FDFFFF",
+          "particle": "#FFFFFF"
+        },
+        "geometry": {
+          "bloom_shape": "trumpet",
+          "leaf_shape": "lance",
+          "petal_count": 6,
+          "bloom_scale_x": 1.0682,
+          "bloom_scale_y": 1.0418,
+          "stem_height_ratio": 0.75,
+          "stem_curve": -0.5315,
+          "leaf_count": 5,
+          "leaf_angle_offset": 12.92,
+          "anchor_x": 0.5,
+          "anchor_y": 1.0
+        },
+        "animation": {
+          "sway_amplitude": 0.0563,
+          "sway_period_ms": 2148,
+          "sway_phase": 0.304601,
+          "glow_opacity": 0.3575,
+          "glow_radius_ratio": 0.099,
+          "particle_rate": 0.0,
+          "particle_phase": 0.250555
+        },
+        "particle_effect": "soft_glow",
+        "decoration": "dew_drops",
+        "growth_direction": "opening",
+        "layer_order": [
+          "shadow",
+          "stem",
+          "leaves",
+          "bloom_back",
+          "bloom_front",
+          "decoration",
+          "glow",
+          "particles"
+        ]
+      }
+    },
+    {
+      "planting_record_id": "3c27e428-270f-5113-a2db-7433ae97971f",
+      "flower_artifact_id": "8c52a329-5124-5929-bd7a-1b2d7e7f9d77",
+      "template_id": "hydrangea_v1",
+      "grid_x": 4,
+      "grid_y": 5,
+      "pixel_x": 216.0,
+      "pixel_y": 288.0,
+      "scale": 1.16,
+      "z_index": 84,
+      "render_spec": {
+        "renderer_schema_version": "1.0",
+        "template_id": "hydrangea_v1",
+        "species": "hydrangea",
+        "variation_seed": 9105,
+        "colors": {
+          "petal_primary": "#7494CB",
+          "petal_secondary": "#546A9B",
+          "petal_highlight": "#ADC9ED",
+          "flower_center": "#E2C66D",
+          "stem": "#47704B",
+          "leaf": "#5F8A58",
+          "glow": "#C4DCF7",
+          "particle": "#DEEEFF"
+        },
+        "geometry": {
+          "bloom_shape": "clustered_sphere",
+          "leaf_shape": "broad_oval",
+          "petal_count": 14,
+          "bloom_scale_x": 1.1354,
+          "bloom_scale_y": 1.1464,
+          "stem_height_ratio": 0.6,
+          "stem_curve": -0.7439,
+          "leaf_count": 3,
+          "leaf_angle_offset": -10.49,
+          "anchor_x": 0.5,
+          "anchor_y": 1.0
+        },
+        "animation": {
+          "sway_amplitude": 0.0524,
+          "sway_period_ms": 2304,
+          "sway_phase": 0.806255,
+          "glow_opacity": 0.3185,
+          "glow_radius_ratio": 0.0882,
+          "particle_rate": 0.0,
+          "particle_phase": 0.444974
+        },
+        "particle_effect": "soft_glow",
+        "decoration": "dew_drops",
+        "growth_direction": "rising",
+        "layer_order": [
+          "shadow",
+          "stem",
+          "leaves",
+          "bloom_back",
+          "bloom_front",
+          "decoration",
+          "glow",
+          "particles"
+        ]
+      }
+    },
+    {
+      "planting_record_id": "c1478ee8-fa5a-5174-bec8-8dba2443024a",
+      "flower_artifact_id": "898a97b9-be36-5091-bc8a-663d32c20b4a",
+      "template_id": "daisy_v1",
+      "grid_x": 1,
+      "grid_y": 7,
+      "pixel_x": 72.0,
+      "pixel_y": 384.0,
+      "scale": 0.975,
+      "z_index": 113,
+      "render_spec": {
+        "renderer_schema_version": "1.0",
+        "template_id": "daisy_v1",
+        "species": "daisy",
+        "variation_seed": 9107,
+        "colors": {
+          "petal_primary": "#E1E7EC",
+          "petal_secondary": "#AEBBC8",
+          "petal_highlight": "#FBFCF8",
+          "flower_center": "#D8BD66",
+          "stem": "#47704B",
+          "leaf": "#5F8A58",
+          "glow": "#F8FAFC",
+          "particle": "#FFFFFF"
+        },
+        "geometry": {
+          "bloom_shape": "radial_disc",
+          "leaf_shape": "narrow",
+          "petal_count": 10,
+          "bloom_scale_x": 0.9453,
+          "bloom_scale_y": 1.0264,
+          "stem_height_ratio": 0.58,
+          "stem_curve": -0.1027,
+          "leaf_count": 5,
+          "leaf_angle_offset": -12.47,
+          "anchor_x": 0.5,
+          "anchor_y": 1.0
+        },
+        "animation": {
+          "sway_amplitude": 0.0602,
+          "sway_period_ms": 1992,
+          "sway_phase": 0.93942,
+          "glow_opacity": 0.3965,
+          "glow_radius_ratio": 0.1098,
+          "particle_rate": 3.5,
+          "particle_phase": 0.521565
+        },
+        "particle_effect": "sparkles",
+        "decoration": "leaf_sprigs",
+        "growth_direction": "rising",
+        "layer_order": [
+          "shadow",
+          "stem",
+          "leaves",
+          "bloom_back",
+          "bloom_front",
+          "decoration",
+          "glow",
+          "particles"
+        ]
+      }
+    },
+    {
+      "planting_record_id": "3853346a-678f-5edb-aa31-6e5b682f8ee4",
+      "flower_artifact_id": "ad958fd3-9208-5662-8e20-9aefa4328167",
+      "template_id": "lavender_v1",
+      "grid_x": 7,
+      "grid_y": 7,
+      "pixel_x": 360.0,
+      "pixel_y": 384.0,
+      "scale": 1.12,
+      "z_index": 119,
+      "render_spec": {
+        "renderer_schema_version": "1.0",
+        "template_id": "lavender_v1",
+        "species": "lavender",
+        "variation_seed": 9108,
+        "colors": {
+          "petal_primary": "#8167B3",
+          "petal_secondary": "#594289",
+          "petal_highlight": "#AD97D4",
+          "flower_center": "#E0B95E",
+          "stem": "#47704B",
+          "leaf": "#5F8A58",
+          "glow": "#C1B2E4",
+          "particle": "#D8CDEE"
+        },
+        "geometry": {
+          "bloom_shape": "spike_cluster",
+          "leaf_shape": "narrow",
+          "petal_count": 8,
+          "bloom_scale_x": 1.1869,
+          "bloom_scale_y": 1.0356,
+          "stem_height_ratio": 0.72,
+          "stem_curve": 0.532,
+          "leaf_count": 5,
+          "leaf_angle_offset": 8.12,
+          "anchor_x": 0.5,
+          "anchor_y": 1.0
+        },
+        "animation": {
+          "sway_amplitude": 0.0641,
+          "sway_period_ms": 1836,
+          "sway_phase": 0.971305,
+          "glow_opacity": 0.4355,
+          "glow_radius_ratio": 0.1206,
+          "particle_rate": 0.0,
+          "particle_phase": 0.208986
+        },
+        "particle_effect": "soft_glow",
+        "decoration": "dew_drops",
+        "growth_direction": "opening",
+        "layer_order": [
+          "shadow",
+          "stem",
+          "leaves",
+          "bloom_back",
+          "bloom_front",
+          "decoration",
+          "glow",
+          "particles"
+        ]
+      }
+    },
+    {
+      "planting_record_id": "d62cc3a7-aefa-5ca3-be87-c62aa95f4b83",
+      "flower_artifact_id": "07e5d9ea-c8b3-5236-acb1-fae1d4b47d23",
+      "template_id": "wildflower_v1",
+      "grid_x": 13,
+      "grid_y": 7,
+      "pixel_x": 648.0,
+      "pixel_y": 384.0,
+      "scale": 1.025,
+      "z_index": 125,
+      "render_spec": {
+        "renderer_schema_version": "1.0",
+        "template_id": "wildflower_v1",
+        "species": "wildflower",
+        "variation_seed": 9109,
+        "colors": {
+          "petal_primary": "#B04263",
+          "petal_secondary": "#77304D",
+          "petal_highlight": "#ED7B94",
+          "flower_center": "#F1B24A",
+          "stem": "#47704B",
+          "leaf": "#5F8A58",
+          "glow": "#F191A6",
+          "particle": "#FCAFBF"
+        },
+        "geometry": {
+          "bloom_shape": "open_cluster",
+          "leaf_shape": "mixed",
+          "petal_count": 8,
+          "bloom_scale_x": 0.9374,
+          "bloom_scale_y": 1.1082,
+          "stem_height_ratio": 0.6,
+          "stem_curve": -0.4018,
+          "leaf_count": 5,
+          "leaf_angle_offset": -7.09,
+          "anchor_x": 0.5,
+          "anchor_y": 1.0
+        },
+        "animation": {
+          "sway_amplitude": 0.068,
+          "sway_period_ms": 1680,
+          "sway_phase": 0.28636,
+          "glow_opacity": 0.4745,
+          "glow_radius_ratio": 0.1314,
+          "particle_rate": 0.0,
+          "particle_phase": 0.681491
+        },
+        "particle_effect": "soft_glow",
+        "decoration": "dew_drops",
+        "growth_direction": "rising",
+        "layer_order": [
+          "shadow",
+          "stem",
+          "leaves",
+          "bloom_back",
+          "bloom_front",
+          "decoration",
+          "glow",
+          "particles"
+        ]
+      }
+    }
+  ]
+}

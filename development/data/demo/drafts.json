@@ -1,0 +1,32 @@
+[
+  {
+    "id": "4c509424-ee17-4f54-ac5a-9bc797576936",
+    "text": "今天终于完成比赛了，虽然很累，但是很满足。",
+    "emotion": {
+      "primary_emotion": "满足感",
+      "secondary_emotions": [
+        "疲劳感"
+      ],
+      "scene": "完成比赛"
+    },
+    "blueprint": {
+      "primary_emotion": "achievement",
+      "secondary_emotions": [
+        "tiredness"
+      ],
+      "energy": 0.8,
+      "valence": 0.7,
+      "tempo": 108,
+      "key": "C Major",
+      "instruments": [
+        "piano",
+        "violin",
+        "guitar"
+      ],
+      "texture": "joyful",
+      "scene": "celebration",
+      "progression": "calm_to_rising"
+    },
+    "created_at": "2026-09-29T16:06:12.806005+08:00"
+  }
+]

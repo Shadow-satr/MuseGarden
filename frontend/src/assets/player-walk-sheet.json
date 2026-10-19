@@ -1,0 +1,28 @@
+{
+  "frameWidth": 288,
+  "frameHeight": 384,
+  "characterHeight": 352,
+  "baseline": 376,
+  "columns": 7,
+  "rows": {
+    "front": 0,
+    "left": 1,
+    "right": 2,
+    "back": 3
+  },
+  "idleColumn": 0,
+  "walkColumns": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "startIndex": {
+    "front": 1,
+    "left": 4,
+    "right": 1,
+    "back": 1
+  }
+}

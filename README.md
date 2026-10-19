@@ -1,0 +1,14 @@
+# MuseGarden
+
+正式代码：`ai_engine/`、`music_engine/`、`flower_engine/`、`application/`、`backend/`、`frontend/`。当前后端持久化数据在 `database/`，启动与导出入口在 `scripts/`。
+
+当前产品进度：正式前端已完成 Step 1–9。花园支持四方向、循环走路动画、脚底网格交互、
+真实创作与种花、花朵记忆详情，以及音乐修改和 V1 / V2 / V3 历史版本选择。完整记录见
+`docs/architecture/Frontend_progress.py`；跨模块现状见 `docs/architecture/MuseGarden_progress.py`。
+
+开发与历史资料统一放在 `development/`，包括旧网页 Demo、演示脚本、演示数据、评估占位目录和测试运行缓存。`test/` 是维护正式代码的 Python 回归测试源码，保留在项目根目录；`docs/` 保存方案和进度记录。
+
+正式前端的启动说明见 [frontend/README.md](frontend/README.md)。开发资料清单见 [development/README.md](development/README.md)。
+
+日常启动可直接双击项目根目录的 `启动 MuseGarden.bat`。它会确认或启动 Ollama、ACE-Step、
+Garden API 与前端，全部就绪后自动打开 `http://127.0.0.1:5182/`。

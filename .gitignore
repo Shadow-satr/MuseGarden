@@ -1,0 +1,29 @@
+# Python runtime caches
+__pycache__/
+*.py[cod]
+/.pytest_cache/
+/.test-tmp-*/
+/.venv/
+
+# Temporary pip installation workspaces accidentally created in the project root
+/pip-*/
+/tmp*
+
+# Frontend build output and incremental compiler state
+/frontend/dist/
+/frontend/*.tsbuildinfo
+
+# Launcher logs are recreated whenever local services start
+/development/runtime_logs/*.log
+
+# Local test output and compiler caches. These files are reproducible and can
+# grow to hundreds of megabytes during frontend and backend test runs.
+/development/test_artifacts/
+/development/demo/creation_preview/.pytest*/
+/development/demo/creation_preview/.vitest-temp/
+
+# Runtime creations, generated music, and local garden state stay on this
+# computer. The application recreates these directories when needed.
+/database/local/
+/database/preview/audio/
+/database/preview/*.json
