@@ -1,8 +1,9 @@
-import { Application } from "pixi.js";
+import { Application, type Texture } from "pixi.js";
 
 import { loadGarden, type GardenLoadResult } from "../api/garden";
 import type { GardenRenderSpec } from "../rendering/flowers/types";
-import { expandedWorldContentSize, gardenViewportSize, WorldScene } from "./WorldScene";
+import { gardenViewportSize, mapWorldContentSize, WorldScene } from "./WorldScene";
+import { loadMapArtTexture } from "./MapArt";
 import { loadPlayerAnimations, Player, type PlayerAnimations } from "./entities/Player";
 import { createInteractables, InteractionManager, type Interactable } from "./interactions";
 
@@ -13,6 +14,7 @@ export class GardenWorld {
   private app: Application | null = null;
   private scene: WorldScene | null = null;
   private player: Player | null = null;
+  private mapTexture: Texture | null = null;
   private gardenId: string | null = null;
   private interactions: InteractionManager | null = null;
   private disposed = false;
@@ -52,8 +54,9 @@ export class GardenWorld {
       return null;
     }
 
-    const playerAnimations = await loadPlayerAnimations();
+    const [playerAnimations, mapTexture] = await Promise.all([loadPlayerAnimations(), loadMapArtTexture()]);
     if (this.disposed) return null;
+    this.mapTexture = mapTexture;
 
     app.canvas.className = "world-canvas";
     app.canvas.setAttribute("aria-label", "MuseGarden 花园世界");
@@ -91,7 +94,8 @@ export class GardenWorld {
     if (!this.app || !this.scene || !this.player) throw new Error("花园尚未就绪");
 
     const targets = createInteractables(spec);
-    const next = new WorldScene(spec);
+    if (!this.mapTexture) throw new Error("地图资源尚未就绪");
+    const next = new WorldScene(spec, this.mapTexture);
     const old = this.scene;
     old.entities.removeChild(this.player.container);
     next.setPlayerCell(this.player.container.x, this.player.container.y);
@@ -113,10 +117,11 @@ export class GardenWorld {
   render(spec: GardenRenderSpec, playerAnimations: PlayerAnimations): void {
     if (this.disposed || !this.app) return;
     const targets = createInteractables(spec);
-    const next = new WorldScene(spec);
-    const worldSize = expandedWorldContentSize(spec);
-    // Keep the existing garden cluster visible at startup; the temporary large
-    // world expands outward from it for Step 11's camera exercise.
+    if (!this.mapTexture) return;
+    const next = new WorldScene(spec, this.mapTexture);
+    const worldSize = mapWorldContentSize();
+    // The current creation grid begins in the upper-left garden field of the
+    // supplied map; Step 13 will assign each painted field its stable IDs.
     const player = new Player(worldSize.width, worldSize.height, spec.cell_size, playerAnimations, {
       x: spec.pixel_width / 2,
       y: spec.pixel_height / 2,
@@ -204,6 +209,7 @@ export class GardenWorld {
     this.player = null;
     this.interactions = null;
     this.app = null;
+    this.mapTexture = null;
     this.host.replaceChildren();
     this.host.style.removeProperty("aspect-ratio");
     this.onTargetChange(null);

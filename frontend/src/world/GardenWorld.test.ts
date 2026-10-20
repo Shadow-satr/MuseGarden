@@ -62,7 +62,7 @@ vi.mock("./WorldScene", async () => {
   const { Container } = await import("pixi.js");
   return {
     gardenViewportSize: (value: typeof spec) => ({ width: value.pixel_width + 72, height: value.pixel_height + 72 }),
-    expandedWorldContentSize: (value: typeof spec) => ({ width: value.pixel_width * 2, height: value.pixel_height * 2 }),
+    mapWorldContentSize: () => ({ width: spec.pixel_width * 2, height: spec.pixel_height * 2 }),
     WorldScene: class {
     container = new Container();
     entities = new Container();

@@ -1,16 +1,18 @@
-import { Container, Graphics } from "pixi.js";
+import { Container, Graphics, Sprite, Texture } from "pixi.js";
 
 import { createGardenScene, type PixelGarden } from "../rendering/flowers/gardenRenderer";
 import type { GardenRenderSpec } from "../rendering/flowers/types";
 import { cameraPositionFor } from "./Camera";
-import { PLOT_COLUMNS, PLOT_ROWS, plotCellBounds, standardPlotBounds } from "./PlotCalibration";
+import { MAP_ART_SIZE } from "./MapArt";
 
 const CELL_STABILITY_MS = 45;
 const CELL_CROSSFADE_MS = 125;
 const CELL_DASH_LENGTH = 6;
 const CELL_DASH_GAP = 5;
 export const WORLD_EDGE_PADDING = 36;
-export const TEMPORARY_WORLD_MULTIPLIER = 2;
+// At native scale a whole island is visible at once. This shows one field and
+// its immediate paths at a time, matching the chosen field-view reference.
+export const MAP_VIEW_ZOOM = 2.5;
 
 export function gardenViewportSize(spec: GardenRenderSpec): { width: number; height: number } {
   return {
@@ -19,37 +21,17 @@ export function gardenViewportSize(spec: GardenRenderSpec): { width: number; hei
   };
 }
 
-export function expandedWorldSize(spec: GardenRenderSpec): { width: number; height: number } {
-  return {
-    width: spec.pixel_width * TEMPORARY_WORLD_MULTIPLIER + WORLD_EDGE_PADDING * 2,
-    height: spec.pixel_height * TEMPORARY_WORLD_MULTIPLIER + WORLD_EDGE_PADDING * 2,
-  };
+/** The formal map has its own art dimensions; gameplay coordinates are map pixels. */
+export function mapWorldContentSize(): { width: number; height: number } {
+  return MAP_ART_SIZE;
 }
 
-export function expandedWorldContentSize(spec: GardenRenderSpec): { width: number; height: number } {
-  return {
-    width: spec.pixel_width * TEMPORARY_WORLD_MULTIPLIER,
-    height: spec.pixel_height * TEMPORARY_WORLD_MULTIPLIER,
-  };
-}
-
-function createExtendedGround(spec: GardenRenderSpec, width: number, height: number): Graphics {
-  const ground = new Graphics().rect(0, 0, width, height).fill(spec.background.base_color);
-  const columns = Math.ceil(width / spec.cell_size);
-  const rows = Math.ceil(height / spec.cell_size);
-  for (let y = 0; y < rows; y += 1) {
-    for (let x = 0; x < columns; x += 1) {
-      if ((x + y) % 2 === 0) {
-        ground.rect(x * spec.cell_size, y * spec.cell_size, spec.cell_size, spec.cell_size)
-          .fill({ color: spec.background.tile_color, alpha: 0.2 });
-      }
-      if ((x * 17 + y * 29) % 7 === 0) {
-        ground.rect(x * spec.cell_size + 9, y * spec.cell_size + 14, 3, 2)
-          .fill({ color: spec.background.accent_color, alpha: 0.5 });
-      }
-    }
-  }
-  return ground;
+function createMapArt(texture: Texture): Sprite {
+  const map = new Sprite(texture);
+  map.label = "musegarden-map-art";
+  map.width = MAP_ART_SIZE.width;
+  map.height = MAP_ART_SIZE.height;
+  return map;
 }
 
 /** Owns Pixi display layers; future world entities belong in entities. */
@@ -58,7 +40,6 @@ export class WorldScene {
   readonly entities = new Container();
   private readonly world = new Container();
   private garden: PixelGarden;
-  private readonly calibrationPlot = new Graphics();
   private readonly outgoingCellHighlight = new Graphics();
   private readonly cellHighlight = new Graphics();
   private readonly cellSize: number;
@@ -72,67 +53,39 @@ export class WorldScene {
   private readonly viewport: { width: number; height: number };
   private readonly worldSize: { width: number; height: number };
 
-  constructor(spec: GardenRenderSpec) {
+  constructor(spec: GardenRenderSpec, mapTexture: Texture) {
     this.container.label = "musegarden-world";
     this.world.label = "world-camera-content";
-    this.garden = createGardenScene(spec);
+    // GardenRenderSpec remains the source of dynamic flowers, but its temporary
+    // grass background and Step 10 prototype field are replaced by the map art.
+    this.garden = createGardenScene(spec, { includeBackground: false });
     this.cellSize = spec.cell_size;
     this.viewport = gardenViewportSize(spec);
-    this.worldSize = expandedWorldSize(spec);
-    const outerGround = createExtendedGround(spec, this.worldSize.width, this.worldSize.height);
-    outerGround.label = "garden-edge-ground";
-    this.garden.container.position.set(WORLD_EDGE_PADDING, WORLD_EDGE_PADDING);
-    this.entities.position.set(WORLD_EDGE_PADDING, WORLD_EDGE_PADDING);
+    this.worldSize = mapWorldContentSize();
+    const mapArt = createMapArt(mapTexture);
+    this.garden.container.position.set(0, 0);
+    this.entities.position.set(0, 0);
     this.entities.label = "world-entities";
-    this.calibrationPlot.label = "plot-scale-calibration-3x2";
-    this.drawCalibrationPlot(spec.pixel_width, spec.pixel_height);
-    this.calibrationPlot.position.set(WORLD_EDGE_PADDING, WORLD_EDGE_PADDING);
     this.outgoingCellHighlight.label = "previous-player-cell-highlight";
     this.outgoingCellHighlight.alpha = 0;
     this.cellHighlight.label = "player-cell-highlight";
     this.entities.addChild(this.outgoingCellHighlight, this.cellHighlight);
-    this.world.addChild(outerGround, this.garden.container, this.calibrationPlot, this.entities);
+    this.world.addChild(mapArt, this.garden.container, this.entities);
     this.container.addChild(this.world);
   }
 
   /** Focus the viewport without mutating any Player, flower, or plot world coordinate. */
   setCameraTarget(playerX: number, playerY: number): void {
     const camera = cameraPositionFor(
-      { x: playerX + WORLD_EDGE_PADDING, y: playerY + WORLD_EDGE_PADDING },
-      this.viewport,
+      { x: playerX, y: playerY },
+      {
+        width: this.viewport.width / MAP_VIEW_ZOOM,
+        height: this.viewport.height / MAP_VIEW_ZOOM,
+      },
       this.worldSize,
     );
-    this.world.position.set(-camera.x, -camera.y);
-  }
-
-  /** A single visual 3 × 2 reference field for Step 10; it has no game state. */
-  private drawCalibrationPlot(worldWidth: number, worldHeight: number): void {
-    const plot = standardPlotBounds(worldWidth, worldHeight);
-    this.calibrationPlot
-      .rect(plot.x + 4, plot.y + 6, plot.width, plot.height)
-      .fill({ color: "#183022", alpha: 0.32 })
-      .rect(plot.x, plot.y, plot.width, plot.height)
-      .fill("#c49352")
-      .rect(plot.x + 4, plot.y + 4, plot.width - 8, plot.height - 8)
-      .fill("#d6aa62");
-
-    for (let row = 0; row < PLOT_ROWS; row += 1) {
-      for (let column = 0; column < PLOT_COLUMNS; column += 1) {
-        const cell = plotCellBounds(column, row, plot);
-        this.calibrationPlot
-          .rect(cell.x + 3, cell.y + 4, cell.width, cell.height)
-          .fill({ color: "#4a3020", alpha: 0.35 })
-          .rect(cell.x, cell.y, cell.width, cell.height)
-          .fill("#725039")
-          .rect(cell.x + 4, cell.y + 4, cell.width - 8, cell.height - 8)
-          .fill("#805a3e");
-        // Restrained pixel texture keeps the field readable without introducing new art assets.
-        this.calibrationPlot
-          .rect(cell.x + 13, cell.y + 17, 4, 3).fill({ color: "#9a7150", alpha: 0.55 })
-          .rect(cell.x + cell.width - 21, cell.y + 34, 3, 4).fill({ color: "#523624", alpha: 0.5 })
-          .rect(cell.x + 29, cell.y + cell.height - 18, 5, 3).fill({ color: "#a27550", alpha: 0.4 });
-      }
-    }
+    this.world.scale.set(MAP_VIEW_ZOOM);
+    this.world.position.set(-camera.x * MAP_VIEW_ZOOM, -camera.y * MAP_VIEW_ZOOM);
   }
 
   setPlayerCell(playerX: number, playerY: number): void {

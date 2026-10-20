@@ -1,6 +1,6 @@
 """MuseGarden Frontend 开发进度，按正式章节顺序记录。"""
 
-CURRENT_STATUS = "Frontend Step 11 — World Coordinate & Camera Foundation 已完成；大世界与边界摄像机已接入，等待 Step 12 正式地图美术。"
+CURRENT_STATUS = "Frontend Step 12 — Map Art Integration & Viewport Calibration 已完成；正式大地图与 3 倍田地视角已接入，等待 Step 13 种植区域映射。"
 
 STEP_1 = """
 Frontend Step 1 — Garden World Shell
@@ -361,5 +361,47 @@ step11-camera-follow.png、step11-camera-right-edge.png（均为 Git 忽略的�
 
 范围：未接入正式大地图图片、河流 / 建筑 / 树木 / 围栏碰撞、稳定地图田地标识、
 新增后端 Plant Spot、NPC、小地图或传送。这些留给 Step 12–14。
+"""
+
+
+STEP_12 = """
+Frontend Step 12 — Map Art Integration & Viewport Calibration
+=============================================================
+
+目标：接入用户提供的正式大花园地图，使用已有摄像机显示局部花园视野；保留 Player、
+花朵、创作与记忆流程，为下一阶段的田地坐标映射准备基础。
+
+素材与世界：
+- 正式地图原图存于 frontend/src/assets/musegarden-map.png，真实尺寸为 1448 × 1086px。
+  frontend/src/world/MapArt.ts 集中记录此尺寸，并在 GardenWorld 初始化期间先由 Pixi
+  Assets 完成加载，因此第一次渲染即是正式地图，没有旧草地闪现。
+- WorldScene 将地图放进既有 world-camera-content 容器，地图原比例显示，不拉伸；
+  世界边界直接使用原图尺寸。Step 11 的 TEMPORARY_WORLD_MULTIPLIER、扩展草地和
+  程序绘制六格田地已移除，因而不会叠在正式地图已有田地、道路和建筑上。
+- 旧的绿格纹只保留为内部坐标 / 数据概念，不再作为可见背景绘制。地图原图自身的
+  像素草地纹理属于美术内容，不是逻辑格线。
+
+视野与比例：
+- MAP_VIEW_ZOOM = 2.5。它让一块 3 × 2 的泥土田地成为画面主要内容，同时仍能看到
+  周围道路和环境；摄像机根据缩放后的可见世界范围进行 clamp，边缘不会露出地图外部。
+- Player 保持 58px 可见高度、120px/s、四方向六帧动画与脚底 anchor。逻辑种植格保持
+  48px，因此人物为约 1.21 个逻辑格高。每块小田地约定为 3 × 2、共 6 个逻辑格；
+  这些格不会显示为绿色线。
+- GardenRenderSpec 的动态花朵继续按原有后端坐标绘制在地图层之上；现有 E 键交互、
+  Creation Overlay、花朵记忆与音乐版本流程没有改写。下一阶段才会给地图中每块田地
+  指定稳定 ID，并将六个逻辑格与后端种植记录逐项映射。
+
+验证：前端 TypeScript / Vite 构建通过；完整 Vitest 在可访问测试缓存的运行环境中
+12 个文件、48 项测试通过。受限沙箱中有 3 个既有测试文件会因临时 Vitest 缓存路径
+不可读取而无法加载，非代码断言失败；在隔离运行环境重新执行后全部通过。
+
+2026-10-20 真实浏览器验收：本地服务启动后，首次进入即展示正式地图；移动时摄像机
+随 Player 移动且不显示地图外部。以 2.5 倍视角查看，顶部左侧田地的六块泥土格占据
+主要画面区域，人物略高于单格。按 E 能进入“留下一段记忆”面板，取消后恢复花园；
+移动至已有花朵所在格时仍显示“[E] 查看记忆”。
+
+范围：没有实现地图碰撞、河流 / 建筑 / 树木通行规则、地图所有田地的稳定种植 ID、
+新的后端 Plant Spot、NPC、小地图或传送。不要把当前动态花朵临时坐标误认为最终
+田地映射；这些留给 Step 13。
 """
 

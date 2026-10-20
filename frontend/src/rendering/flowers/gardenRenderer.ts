@@ -17,11 +17,6 @@ function createBackground(spec: GardenRenderSpec) {
 
   for (let y = 0; y < spec.grid_height; y += 1) {
     for (let x = 0; x < spec.grid_width; x += 1) {
-      if ((x + y) % 2 === 0) {
-        background
-          .rect(x * spec.cell_size, y * spec.cell_size, spec.cell_size, spec.cell_size)
-          .fill({ color: spec.background.tile_color, alpha: 0.2 });
-      }
       const marker = (x * 17 + y * 29) % 7;
       if (marker === 0) {
         background
@@ -33,16 +28,18 @@ function createBackground(spec: GardenRenderSpec) {
   return background;
 }
 
-export function createGardenScene(input: unknown): PixelGarden {
+export function createGardenScene(input: unknown, options: { includeBackground?: boolean } = {}): PixelGarden {
   assertGardenRenderSpec(input);
   const spec = input;
   const root = new Container();
   root.label = `garden:${spec.garden_id}`;
   root.sortableChildren = true;
 
-  const background = createBackground(spec);
-  background.zIndex = -1;
-  root.addChild(background);
+  if (options.includeBackground !== false) {
+    const background = createBackground(spec);
+    background.zIndex = -1;
+    root.addChild(background);
+  }
 
   const flowers: PixelFlower[] = [];
   for (const placement of spec.flowers) {
