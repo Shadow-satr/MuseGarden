@@ -27,11 +27,30 @@ describe("Garden renderer contract", () => {
       expect(child).toBeTruthy();
       expect(child!.x).toBe(placement.pixel_x);
       expect(child!.y).toBe(placement.pixel_y);
-      expect(child!.scale.x).toBe(placement.scale);
+      expect(child!.scale.x).toBeCloseTo(placement.scale * 0.24);
       expect(child!.zIndex).toBe(placement.z_index);
     }
 
     expect(() => scene.update(1200)).not.toThrow();
+    scene.destroy();
+  });
+
+  it("renders persisted large flowers at a visibly larger stable scale", () => {
+    assertGardenRenderSpec(gardenPreview);
+    const source = gardenPreview.flowers[0];
+    const occupied = [-1, 0, 1].flatMap((dy) =>
+      [-1, 0, 1].map((dx) => [source.grid_x + dx, source.grid_y + dy] as [number, number]),
+    );
+    const large = {
+      ...source,
+      planting_record_id: "large-planting",
+      flower_size: "large" as const,
+      placement_schema_version: "terrain-v1" as const,
+      occupied_tiles: occupied,
+    };
+    const scene = createGardenScene({ ...gardenPreview, flowers: [large] });
+    const child = scene.container.children.find((entry) => entry.label === "planting:large-planting");
+    expect(child?.scale.x).toBeCloseTo(source.scale * 0.68);
     scene.destroy();
   });
 

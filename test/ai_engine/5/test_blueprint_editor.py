@@ -80,6 +80,20 @@ with (
     mock_commit_memory.assert_not_called()
 
 
+# LLM 偶尔把未要求修改的关键字符串字段保留为空；应继承当前 Blueprint，避免把无效
+# key 继续传给 Music Engine。缺失字段仍由后面的边界测试拒绝。
+with patch(
+    "ai_engine.blueprint.editor.call_llm",
+    return_value=json.dumps({**edited_data, "key": "   "}, ensure_ascii=False),
+):
+    blank_key_blueprint = edit_blueprint(
+        original_text,
+        current_blueprint,
+        edit_instruction,
+    )
+    assert blank_key_blueprint.key == current_blueprint.key
+
+
 # 空输入应在调用 LLM 前被拒绝
 with patch("ai_engine.blueprint.editor.call_llm") as mock_call_llm:
     for invalid_original_text, invalid_instruction in [

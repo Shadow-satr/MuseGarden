@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
-  createMemory, CreationResponseError, loadFlowerMemory, reviseFlowerMusic, selectFlowerMusicVersion,
+  createMemory, CreationResponseError, loadFlowerMemory, renameFlowerMusicVersion, reviseFlowerMusic, selectFlowerMusicVersion,
   type CreationDraft, type CreationResult, type FlowerMemory,
 } from "./api/creation";
 import { GardenWorldView } from "./components/GardenWorldView";
+import { MapOverview } from "./components/MapOverview";
 import { CreationOverlay, type CreationStatus } from "./ui/CreationOverlay";
 import { FlowerDetailOverlay } from "./ui/FlowerDetailOverlay";
+import { MiniMapOverlay } from "./ui/MiniMapOverlay";
 import { WorldOverlay } from "./ui/WorldOverlay";
 import type { Interactable } from "./world/interactions";
 import type { GardenWorld } from "./world/GardenWorld";
 
-function App() {
+function GardenApp() {
   const [target, setTarget] = useState<Interactable | null>(null);
   const [selectedPlantSpot, setSelectedPlantSpot] = useState<Extract<Interactable, { kind: "plant-spot" }> | null>(null);
   const [interactionMessage, setInteractionMessage] = useState("");
@@ -25,6 +27,8 @@ function App() {
   const [revisionStatus, setRevisionStatus] = useState<"idle" | "loading" | "error">("idle");
   const [revisionError, setRevisionError] = useState("");
   const [selectingAudioId, setSelectingAudioId] = useState<string | null>(null);
+  const [mapOpen, setMapOpen] = useState(false);
+  const [mapPlayerPosition, setMapPlayerPosition] = useState<{ x: number; y: number } | null>(null);
   const pendingRequest = useRef<AbortController | null>(null);
   const flowerDetailRequest = useRef<AbortController | null>(null);
   const musicRequest = useRef<AbortController | null>(null);
@@ -39,6 +43,23 @@ function App() {
     musicRequest.current?.abort();
     musicRequest.current = null;
   }, []);
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
+      if (event.target instanceof HTMLElement && event.target.closest("input, textarea, [contenteditable='true']")) return;
+      if (event.key === "Escape" && mapOpen) {
+        event.preventDefault();
+        setMapOpen(false);
+        return;
+      }
+      if (event.key.toLowerCase() !== "m" || overlayOpen) return;
+      event.preventDefault();
+      if (!mapOpen) setMapPlayerPosition(worldRef.current?.playerWorldPosition ?? null);
+      setMapOpen((open) => !open);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [mapOpen, overlayOpen]);
   const onTargetChange = useCallback((next: Interactable | null) => {
     setTarget(next);
     setInteractionMessage("");
@@ -140,6 +161,26 @@ function App() {
       }
     }
   }, [flowerMemory]);
+  const onRenameFlowerMusic = useCallback(async (audioArtifactId: string, displayName: string): Promise<boolean> => {
+    const memory = flowerMemory;
+    if (!memory || musicRequest.current) return false;
+    const controller = new AbortController();
+    musicRequest.current = controller;
+    setRevisionError("");
+    try {
+      const updated = await renameFlowerMusicVersion(memory.creation_id, audioArtifactId, displayName, controller.signal);
+      if (musicRequest.current === controller) setFlowerMemory(updated);
+      return true;
+    } catch (error) {
+      if (musicRequest.current === controller && !controller.signal.aborted) {
+        setRevisionError(error instanceof Error ? error.message : "版本名称保存失败");
+        setRevisionStatus("error");
+      }
+      return false;
+    } finally {
+      if (musicRequest.current === controller) musicRequest.current = null;
+    }
+  }, [flowerMemory]);
   const onCancelCreation = useCallback(() => {
     pendingRequest.current?.abort();
     pendingRequest.current = null;
@@ -222,7 +263,7 @@ function App() {
   }, [creationResult]);
   return <main className="world-shell">
     <WorldOverlay target={overlayOpen ? null : target} interactionMessage={interactionMessage} />
-    <GardenWorldView onTargetChange={onTargetChange} onInteract={onInteract} onReady={onWorldReady} paused={overlayOpen} />
+    <GardenWorldView onTargetChange={onTargetChange} onInteract={onInteract} onReady={onWorldReady} paused={overlayOpen || mapOpen} />
     {selectedPlantSpot && <CreationOverlay
       plantSpotId={selectedPlantSpot.id}
       status={creationStatus}
@@ -243,8 +284,14 @@ function App() {
       onRetry={() => { void readFlowerMemory(selectedFlower); }}
       onRevise={onReviseFlowerMusic}
       onSelectVersion={onSelectFlowerMusic}
+      onRenameVersion={onRenameFlowerMusic}
     />}
+    {mapOpen && <MiniMapOverlay playerPosition={mapPlayerPosition} />}
   </main>;
+}
+
+function App() {
+  return window.location.pathname === "/map-overview" ? <MapOverview /> : <GardenApp />;
 }
 
 export default App;

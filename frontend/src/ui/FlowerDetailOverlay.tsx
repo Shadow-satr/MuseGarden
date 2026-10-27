@@ -3,6 +3,8 @@ import { useState, type FormEvent } from "react";
 import type { FlowerMemory } from "../api/creation";
 import { AudioPlayer } from "./AudioPlayer";
 import { FlowerPortrait } from "./FlowerPortrait";
+import { MusicCompanionCard } from "./MusicCompanionCard";
+import { MusicRevisionSuggestions } from "./MusicRevisionSuggestions";
 
 interface FlowerDetailOverlayProps {
   status: "loading" | "success" | "error";
@@ -15,17 +17,20 @@ interface FlowerDetailOverlayProps {
   onRetry: () => void;
   onRevise: (modificationText: string) => Promise<boolean>;
   onSelectVersion: (audioArtifactId: string) => Promise<void>;
+  onRenameVersion?: (audioArtifactId: string, displayName: string) => Promise<boolean>;
 }
 
 const MAX_REVISION_LENGTH = 500;
 
 export function FlowerDetailOverlay({
   status, memory, error, revisionStatus, revisionError, selectingAudioId,
-  onClose, onRetry, onRevise, onSelectVersion,
+  onClose, onRetry, onRevise, onSelectVersion, onRenameVersion,
 }: FlowerDetailOverlayProps) {
   const [editing, setEditing] = useState(false);
   const [instruction, setInstruction] = useState("");
   const [expandedVersionId, setExpandedVersionId] = useState<string | null>(null);
+  const [renamingVersionId, setRenamingVersionId] = useState<string | null>(null);
+  const [versionName, setVersionName] = useState("");
   const busy = revisionStatus === "loading" || selectingAudioId !== null;
 
   const submitRevision = async (event: FormEvent<HTMLFormElement>) => {
@@ -35,6 +40,14 @@ export function FlowerDetailOverlay({
     if (await onRevise(text)) {
       setInstruction("");
       setEditing(false);
+    }
+  };
+  const saveVersionName = async (audioArtifactId: string) => {
+    const name = versionName.trim();
+    if (!name || !onRenameVersion || busy) return;
+    if (await onRenameVersion(audioArtifactId, name)) {
+      setRenamingVersionId(null);
+      setVersionName("");
     }
   };
 
@@ -71,6 +84,8 @@ export function FlowerDetailOverlay({
             {memory.music_versions.map((version) => {
               const description = version.modification_text || (version.version === 1 ? "初始版本" : "历史版本");
               const expanded = expandedVersionId === version.version_id;
+              const renaming = renamingVersionId === version.version_id;
+              const displayName = version.display_name || (version.version === 1 ? "初始版本" : `音乐版本 ${version.version}`);
               return <div className={`music-version-item${version.is_selected ? " is-selected" : ""}`} key={version.version_id}>
                 <button
                   className="music-version-select"
@@ -82,13 +97,31 @@ export function FlowerDetailOverlay({
                 >
                   <strong>V{version.version}</strong>{version.is_latest && <small>最新</small>}
                 </button>
-                <button
-                  className={`music-version-instruction${expanded ? " is-expanded" : ""}`}
-                  type="button"
-                  aria-expanded={expanded}
-                  aria-label={`${expanded ? "收起" : "展开"} V${version.version} 修改要求`}
-                  onClick={() => setExpandedVersionId(expanded ? null : version.version_id)}
-                >{description}</button>
+                {renaming
+                  ? <form className="music-version-rename" onSubmit={(event) => { event.preventDefault(); void saveVersionName(version.audio_artifact_id); }}>
+                    <input aria-label={`V${version.version} 版本名称`} value={versionName} maxLength={60} autoFocus disabled={busy}
+                      onChange={(event) => setVersionName(event.target.value.slice(0, 60))}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          void saveVersionName(version.audio_artifact_id);
+                          return;
+                        }
+                        if (event.key === "Escape") {
+                          event.preventDefault();
+                          setRenamingVersionId(null);
+                          setVersionName("");
+                        }
+                      }}
+                      onBlur={() => { if (!busy) { setRenamingVersionId(null); setVersionName(""); } }} />
+                    {revisionStatus === "error" && <p className="music-version-rename-error" role="alert">{revisionError}</p>}
+                  </form>
+                  : <button
+                    className="music-version-name"
+                    type="button"
+                    aria-label={`修改 V${version.version} 的名称`}
+                    onClick={() => { if (onRenameVersion) { setRenamingVersionId(version.version_id); setVersionName(displayName); } }}
+                  >{displayName}</button>}
                 <button
                   className="music-version-select music-version-status"
                   type="button"
@@ -97,6 +130,13 @@ export function FlowerDetailOverlay({
                   onClick={() => { void onSelectVersion(version.audio_artifact_id); }}
                 >{selectingAudioId === version.audio_artifact_id ? "切换中…" : version.is_selected ? "当前播放" : "选择试听"}</button>
                 {expanded && <p className="music-version-full-instruction">{description}</p>}
+                {!renaming && <button
+                  className={`music-version-instruction${expanded ? " is-expanded" : ""}`}
+                  type="button"
+                  aria-expanded={expanded}
+                  aria-label={`${expanded ? "收起" : "展开"} V${version.version} 修改要求`}
+                  onClick={() => setExpandedVersionId(expanded ? null : version.version_id)}
+                >{description}</button>}
               </div>;
             })}
           </div>
@@ -104,10 +144,19 @@ export function FlowerDetailOverlay({
           {memory.music?.url
             ? <AudioPlayer key={memory.music.artifact_id} url={memory.music.url} />
             : <p className="creation-feedback creation-error" role="alert">这段记忆暂时没有可播放的音乐</p>}
+          {memory.music && <MusicCompanionCard
+            audioArtifactId={memory.music.artifact_id}
+            version={memory.music.version}
+            modificationText={memory.music_versions.find((item) => item.audio_artifact_id === memory.music?.artifact_id)?.modification_text}
+          />}
           {!editing && revisionStatus === "error" && <p className="creation-feedback creation-error" role="alert">{revisionError}</p>}
 
           {editing && <form className="music-revision-form" onSubmit={(event) => { void submitRevision(event); }}>
             <p className="creation-description">告诉花园，希望这段音乐发生什么变化。原始记忆不会被修改。</p>
+            {memory.music && <MusicRevisionSuggestions
+              audioArtifactId={memory.music.artifact_id}
+              onUseSuggestion={(text) => setInstruction(text)}
+            />}
             <label className="creation-label" htmlFor="music-revision-instruction">修改要求</label>
             <textarea
               id="music-revision-instruction"

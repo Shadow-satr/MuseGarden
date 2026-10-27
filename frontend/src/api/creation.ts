@@ -6,8 +6,8 @@ export interface CreationDraft {
 export interface CreationResult {
   creation_id: string;
   text: string;
-  flower: { artifact_id: string; species: string; render_spec?: FlowerRenderSpec };
-  planting: { record_id: string; x: number; y: number };
+  flower: { artifact_id: string; species: string; size?: "small" | "large"; occupied_tiles?: [number, number][]; render_spec?: FlowerRenderSpec };
+  planting: { record_id: string; x: number; y: number; placement_schema_version?: "legacy" | "terrain-v1"; flower_size?: "small" | "large"; occupied_tiles?: [number, number][] };
   music: { artifact_id: string; url: string; version?: number };
   latest_music_version?: number;
   music_versions?: MusicVersion[];
@@ -18,10 +18,30 @@ export interface MusicVersion {
   audio_artifact_id: string;
   version: number;
   modification_text: string | null;
+  display_name?: string;
   created_at: string;
   url: string;
   is_latest: boolean;
   is_selected: boolean;
+}
+
+export interface MusicCompanionInterpretation {
+  audio_artifact_id: string;
+  creation_context_quality: "exact_revision" | "current_record" | "generation_spec_only";
+  narrative: {
+    professional_introduction: string;
+    mood_and_character: string;
+    instrumentation: { instrument: string; evidence_status: string; description: string }[];
+    listening_guide: { section: string; start_seconds: number; end_seconds: number; description: string }[];
+    intent_alignment: { intent: string; assessment: string; explanation: string }[];
+    caveats: string[];
+  };
+}
+
+export interface MusicRevisionSuggestion {
+  title: string;
+  rationale: string;
+  modification_text: string;
 }
 
 export interface FlowerRenderSpec {
@@ -47,8 +67,8 @@ export interface FlowerRenderSpec {
 export interface FlowerMemory {
   creation_id: string;
   text: string;
-  flower: { artifact_id: string; species: string; render_spec?: FlowerRenderSpec };
-  planting: { record_id: string; x: number; y: number };
+  flower: { artifact_id: string; species: string; size?: "small" | "large"; occupied_tiles?: [number, number][]; render_spec?: FlowerRenderSpec };
+  planting: { record_id: string; x: number; y: number; placement_schema_version?: "legacy" | "terrain-v1"; flower_size?: "small" | "large"; occupied_tiles?: [number, number][] };
   music: { artifact_id: string; url: string; version?: number } | null;
   latest_music_version: number;
   music_versions: MusicVersion[];
@@ -99,6 +119,7 @@ function isFlowerMemory(value: unknown): value is FlowerMemory {
       typeof candidate.audio_artifact_id === "string" &&
       typeof candidate.version === "number" && candidate.version >= 1 &&
       (candidate.modification_text === null || typeof candidate.modification_text === "string") &&
+      (candidate.display_name === undefined || (typeof candidate.display_name === "string" && candidate.display_name.length > 0)) &&
       typeof candidate.created_at === "string" && typeof candidate.url === "string" &&
       /^\/api\/audio\/[0-9a-fA-F-]+$/.test(candidate.url) &&
       typeof candidate.is_latest === "boolean" && typeof candidate.is_selected === "boolean";
@@ -183,6 +204,55 @@ export function selectFlowerMusicVersion(
     { audio_artifact_id: audioArtifactId },
     signal,
   );
+}
+
+export function renameFlowerMusicVersion(
+  creationId: string,
+  audioArtifactId: string,
+  displayName: string,
+  signal?: AbortSignal,
+): Promise<FlowerMemory> {
+  return postFlowerMemory(
+    `/api/creations/${creationId}/music-version-name`,
+    { audio_artifact_id: audioArtifactId, display_name: displayName },
+    signal,
+  );
+}
+
+export async function generateMusicCompanionInterpretation(
+  audioArtifactId: string,
+  signal?: AbortSignal,
+): Promise<MusicCompanionInterpretation> {
+  const response = await fetch(`/api/music-companion/${audioArtifactId}`, { method: "POST", signal });
+  const payload = await readJson(response);
+  if (!response.ok) {
+    const message = payload && typeof payload === "object" && "error" in payload
+      ? String(payload.error)
+      : `HTTP ${response.status}`;
+    throw new Error(message);
+  }
+  if (!payload || typeof payload !== "object") throw new Error("音乐解读结果格式无效");
+  const item = payload as Record<string, unknown>;
+  if (item.audio_artifact_id !== audioArtifactId || !item.narrative || typeof item.narrative !== "object") {
+    throw new Error("音乐解读结果不完整");
+  }
+  return payload as MusicCompanionInterpretation;
+}
+
+export async function generateMusicRevisionSuggestions(
+  audioArtifactId: string,
+  seenTitles: string[],
+): Promise<MusicRevisionSuggestion[]> {
+  const response = await fetch(`/api/music-companion/${audioArtifactId}/suggestions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ seen_titles: seenTitles }),
+  });
+  const payload = await readJson(response);
+  if (!response.ok || !payload || typeof payload !== "object" || !("suggestions" in payload) || !Array.isArray(payload.suggestions)) {
+    throw new Error(response.ok ? "修改建议格式无效" : "暂时无法生成修改建议");
+  }
+  return payload.suggestions as MusicRevisionSuggestion[];
 }
 
 export function spotCoordinates(plantSpotId: string): { x: number; y: number } {

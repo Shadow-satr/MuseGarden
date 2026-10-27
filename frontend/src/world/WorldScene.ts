@@ -1,37 +1,32 @@
-import { Container, Graphics, Sprite, Texture } from "pixi.js";
+import { Container, Graphics } from "pixi.js";
 
 import { createGardenScene, type PixelGarden } from "../rendering/flowers/gardenRenderer";
 import type { GardenRenderSpec } from "../rendering/flowers/types";
 import { cameraPositionFor } from "./Camera";
-import { MAP_ART_SIZE } from "./MapArt";
+import { mapGardenSpecToWorld } from "./GardenMapLayout";
+import { PLOT_CELL_SIZE } from "./PlotCalibration";
+import { MUSE_GARDEN_TERRAIN } from "./TerrainMap";
+import { createTerrainLayer } from "./TerrainRenderer";
+import type { TerrainTextures } from "./TerrainTextures";
 
 const CELL_STABILITY_MS = 45;
 const CELL_CROSSFADE_MS = 125;
 const CELL_DASH_LENGTH = 6;
 const CELL_DASH_GAP = 5;
 export const WORLD_EDGE_PADDING = 36;
+export const VIEWPORT_WIDTH = 840;
+export const VIEWPORT_HEIGHT = 552;
 // At native scale a whole island is visible at once. This shows one field and
 // its immediate paths at a time, matching the chosen field-view reference.
 export const MAP_VIEW_ZOOM = 2.5;
 
-export function gardenViewportSize(spec: GardenRenderSpec): { width: number; height: number } {
-  return {
-    width: spec.pixel_width + WORLD_EDGE_PADDING * 2,
-    height: spec.pixel_height + WORLD_EDGE_PADDING * 2,
-  };
+export function gardenViewportSize(_spec: GardenRenderSpec): { width: number; height: number } {
+  return { width: VIEWPORT_WIDTH, height: VIEWPORT_HEIGHT };
 }
 
-/** The formal map has its own art dimensions; gameplay coordinates are map pixels. */
+/** The terrain data owns the formal map dimensions and gameplay coordinates. */
 export function mapWorldContentSize(): { width: number; height: number } {
-  return MAP_ART_SIZE;
-}
-
-function createMapArt(texture: Texture): Sprite {
-  const map = new Sprite(texture);
-  map.label = "musegarden-map-art";
-  map.width = MAP_ART_SIZE.width;
-  map.height = MAP_ART_SIZE.height;
-  return map;
+  return { width: MUSE_GARDEN_TERRAIN.width, height: MUSE_GARDEN_TERRAIN.height };
 }
 
 /** Owns Pixi display layers; future world entities belong in entities. */
@@ -53,16 +48,16 @@ export class WorldScene {
   private readonly viewport: { width: number; height: number };
   private readonly worldSize: { width: number; height: number };
 
-  constructor(spec: GardenRenderSpec, mapTexture: Texture) {
+  constructor(spec: GardenRenderSpec, terrainTextures: TerrainTextures) {
     this.container.label = "musegarden-world";
     this.world.label = "world-camera-content";
-    // GardenRenderSpec remains the source of dynamic flowers, but its temporary
-    // grass background and Step 10 prototype field are replaced by the map art.
-    this.garden = createGardenScene(spec, { includeBackground: false });
-    this.cellSize = spec.cell_size;
+    // GardenRenderSpec remains the source of dynamic flowers. Its temporary
+    // grass background is replaced by the data-driven terrain layer.
+    this.garden = createGardenScene(mapGardenSpecToWorld(spec), { includeBackground: false });
+    this.cellSize = PLOT_CELL_SIZE;
     this.viewport = gardenViewportSize(spec);
     this.worldSize = mapWorldContentSize();
-    const mapArt = createMapArt(mapTexture);
+    const terrain = createTerrainLayer(MUSE_GARDEN_TERRAIN, terrainTextures);
     this.garden.container.position.set(0, 0);
     this.entities.position.set(0, 0);
     this.entities.label = "world-entities";
@@ -70,7 +65,7 @@ export class WorldScene {
     this.outgoingCellHighlight.alpha = 0;
     this.cellHighlight.label = "player-cell-highlight";
     this.entities.addChild(this.outgoingCellHighlight, this.cellHighlight);
-    this.world.addChild(mapArt, this.garden.container, this.entities);
+    this.world.addChild(terrain, this.garden.container, this.entities);
     this.container.addChild(this.world);
   }
 

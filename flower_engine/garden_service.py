@@ -34,6 +34,10 @@ class GardenService:
         flower_artifact_id: UUID | str,
         x: int,
         y: int,
+        *,
+        placement_schema_version: str = "legacy",
+        flower_size: str = "small",
+        occupied_tiles: tuple[tuple[int, int], ...] = (),
     ) -> PlantingRecord:
         """验证引用、边界和位置冲突后，把花种进指定网格。"""
         garden = self.garden_store.get_garden(garden_id)
@@ -42,13 +46,21 @@ class GardenService:
         flower = self.flower_store.get(flower_artifact_id)
         if flower is None:
             raise ValueError(f"FlowerArtifact 不存在：{flower_artifact_id}")
-        garden = self.validate_planting_position(garden_id, x, y)
+        garden = self.validate_planting_position(
+            garden_id,
+            x,
+            y,
+            occupied_tiles=occupied_tiles,
+        )
 
         planting = PlantingRecord(
             garden_id=garden.id,
             flower_artifact_id=flower.id,
             x=x,
             y=y,
+            placement_schema_version=placement_schema_version,
+            flower_size=flower_size,
+            occupied_tiles=occupied_tiles,
         )
         self.garden_store.save_planting(planting)
         return planting
@@ -58,6 +70,8 @@ class GardenService:
         garden_id: UUID | str,
         x: int,
         y: int,
+        *,
+        occupied_tiles: tuple[tuple[int, int], ...] = (),
     ) -> Garden:
         """在耗时生成前预检位置；真正保存时仍重新检查。"""
         garden = self.garden_store.get_garden(garden_id)
@@ -65,10 +79,14 @@ class GardenService:
             raise ValueError(f"Garden 不存在：{garden_id}")
         _validate_coordinate("x", x, garden.width)
         _validate_coordinate("y", y, garden.height)
-        if any(
-            planting.x == x and planting.y == y
-            for planting in self.garden_store.list_plantings(garden.id)
-        ):
+        candidate_tiles = set(occupied_tiles or ((x, y),))
+        for tile_x, tile_y in candidate_tiles:
+            _validate_coordinate("occupied tile x", tile_x, garden.width)
+            _validate_coordinate("occupied tile y", tile_y, garden.height)
+        existing_tiles: set[tuple[int, int]] = set()
+        for planting in self.garden_store.list_plantings(garden.id):
+            existing_tiles.update(planting.occupied_tiles or ((planting.x, planting.y),))
+        if candidate_tiles & existing_tiles:
             raise ValueError(f"花园位置 ({x}, {y}) 已经有花")
         return garden
 

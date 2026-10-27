@@ -12,6 +12,26 @@ from ai_engine.llm.prompts.blueprint_edit import BLUEPRINT_EDIT_PROMPT
 from .schema import MusicBlueprint
 
 
+def _restore_blank_identity_fields(
+    candidate: object,
+    current_blueprint: MusicBlueprint,
+) -> object:
+    """保留模型未实际修改、却以空字符串返回的基础音乐字段。
+
+    修改音乐时，LLM 偶尔会保留完整字段名却把 key、texture 等未涉及字段填成空字符串。
+    这不是用户请求的修改，也无法被 MusicGenerationSpec 使用；用当前版本的同名字段补回。
+    缺失字段、错误类型和数值越界仍交给 MusicBlueprint 正常拒绝。
+    """
+    if not isinstance(candidate, dict):
+        return candidate
+    restored = dict(candidate)
+    for field in ("primary_emotion", "key", "texture", "scene"):
+        value = restored.get(field)
+        if isinstance(value, str) and not value.strip():
+            restored[field] = getattr(current_blueprint, field)
+    return restored
+
+
 def edit_blueprint(
     original_text: str,
     current_blueprint: MusicBlueprint,
@@ -37,4 +57,7 @@ def edit_blueprint(
         current_blueprint=current_blueprint.model_dump_json(indent=2),
         edit_instruction=edit_instruction,
     )
-    return MusicBlueprint.model_validate(parse_json_response(call_llm(prompt)))
+    candidate = parse_json_response(call_llm(prompt))
+    return MusicBlueprint.model_validate(
+        _restore_blank_identity_fields(candidate, current_blueprint),
+    )

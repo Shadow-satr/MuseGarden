@@ -305,9 +305,29 @@ class PlantingRecord(BaseModel):
     flower_artifact_id: UUID
     x: int = Field(strict=True, ge=0)
     y: int = Field(strict=True, ge=0)
+    placement_schema_version: Literal["legacy", "terrain-v1"] = "legacy"
+    flower_size: Literal["small", "large"] = "small"
+    occupied_tiles: tuple[tuple[int, int], ...] = ()
     planted_at: datetime = Field(
         default_factory=lambda: datetime.now(BEIJING_TIMEZONE)
     )
+
+    @model_validator(mode="after")
+    def validate_terrain_footprint(self) -> "PlantingRecord":
+        if self.placement_schema_version == "legacy":
+            if self.flower_size != "small" or self.occupied_tiles:
+                raise ValueError("legacy 种植记录必须按 small 且不保存地形占地")
+            return self
+        expected_count = 1 if self.flower_size == "small" else 9
+        if len(self.occupied_tiles) != expected_count:
+            raise ValueError(f"{self.flower_size} 花朵占地数量必须为 {expected_count}")
+        if len(set(self.occupied_tiles)) != len(self.occupied_tiles):
+            raise ValueError("花朵占地不能包含重复格子")
+        if (self.x, self.y) not in self.occupied_tiles:
+            raise ValueError("花朵中心格必须包含在占地范围内")
+        if any(tile_x < 0 or tile_y < 0 for tile_x, tile_y in self.occupied_tiles):
+            raise ValueError("花朵占地坐标不能为负数")
+        return self
 
 
 class GardenBackgroundSpec(BaseModel):
@@ -338,6 +358,9 @@ class GardenRenderFlower(BaseModel):
     pixel_y: float = Field(ge=0)
     scale: float = Field(ge=0.75, le=1.25)
     z_index: int = Field(strict=True, ge=0)
+    placement_schema_version: Literal["legacy", "terrain-v1"] = "legacy"
+    flower_size: Literal["small", "large"] = "small"
+    occupied_tiles: tuple[tuple[int, int], ...] = ()
     render_spec: FlowerRenderSpec
 
     @model_validator(mode="after")

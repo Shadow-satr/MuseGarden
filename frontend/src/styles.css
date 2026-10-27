@@ -45,21 +45,52 @@ html, body, #root { width: 100%; min-width: 320px; min-height: 100%; margin: 0; 
 .music-version-item { width: 100%; display: grid; grid-template-columns: 68px minmax(0, 1fr) 74px; align-items: center; gap: 8px; padding: 7px 8px; border: 1px solid #9cac8a38; border-radius: 10px; color: #d9dfcd; background: #0d1c1666; }
 .music-version-item:hover { border-color: #d9d1a977; background: #162a20; }
 .music-version-item.is-selected { border-color: #dfe2b799; background: #25392b; }
-.music-version-select, .music-version-instruction { min-width: 0; border: 0; color: inherit; background: transparent; font: inherit; text-align: left; }
+.music-version-select, .music-version-instruction, .music-version-name { min-width: 0; border: 0; color: inherit; background: transparent; font: inherit; text-align: left; }
 .music-version-select { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
 .music-version-select:disabled { cursor: default; }
 .music-version-item strong { color: #f5efd8; font-size: 14px; }
 .music-version-item small { margin-left: 7px; padding: 2px 5px; border-radius: 7px; color: #223425; background: #dfe2b7; font-size: 9px; }
-.music-version-instruction { overflow: hidden; color: #c7d0bf; cursor: pointer; font-size: 12px; line-height: 1.45; text-overflow: ellipsis; white-space: nowrap; }
+.music-version-name { display: inline-flex; align-items: center; gap: 7px; overflow: hidden; color: #e6e8d4; cursor: pointer; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
+.music-version-instruction { grid-column: 2 / 3; overflow: hidden; padding: 0; color: #aebba7; cursor: pointer; font-size: 11px; line-height: 1.45; text-overflow: ellipsis; white-space: nowrap; }
+.music-version-rename { min-width: 0; }
+.music-version-rename input { min-width: 0; width: 100%; padding: 5px 7px; border: 1px solid #dfe2b799; border-radius: 6px; color: #f6efda; background: #0d1c16; font: 13px system-ui, sans-serif; }
+.music-version-rename-error { grid-column: 1 / -1; margin: 5px 0 0; color: #ffd1bc; font: 11px system-ui, sans-serif; }
 .music-version-full-instruction { grid-column: 1 / -1; margin: 2px 4px 4px; padding: 9px 10px; border-left: 2px solid #dfe2b799; border-radius: 0 6px 6px 0; color: #e0e6d6; background: #09171180; font-size: 12px; line-height: 1.55; overflow-wrap: anywhere; }
 .music-version-status { justify-content: flex-end; color: #aebba7; font-size: 11px; white-space: nowrap; }
 .music-version-select:focus-visible, .music-version-instruction:focus-visible { outline: 2px solid #fff0c6; outline-offset: 3px; border-radius: 4px; }
 .music-revision-form { margin-top: 20px; padding: 18px; border-radius: 12px; background: #0b1913aa; }
 .music-revision-form .creation-description { margin-top: 0; margin-bottom: 16px; }
+.music-revision-form .music-suggestions { margin: 0 0 18px; padding: 14px; border: 1px solid #aebc9e35; border-radius: 10px; background: #13251b88; }
+.music-suggestions h4 { margin: 0; color: #eee9c8; font-size: 15px; font-weight: 400; }
 .music-revision-form textarea { min-height: 112px; }
 .music-revision-actions { margin-top: 16px; }
 .creation-audio { margin: 18px 0; text-align: center; }
 .creation-audio button { padding: 9px 18px; border: 1px solid #dddfb6; border-radius: 22px; color: #f6efda; background: #0d1c16; cursor: pointer; }
+.music-companion-card { margin: 18px 0; padding: 17px; border: 1px solid #d9d1a94d; border-radius: 13px; color: #dfe6d6; background: #0a1812b8; }
+.music-companion-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.music-companion-heading h3 { margin: 0; font: 400 20px Georgia, "Songti SC", serif; }
+.music-companion-trigger { cursor: pointer; padding: 8px 13px; border: 1px solid #d9d1a999; border-radius: 18px; color: #18281f; background: #e2e3b9; font: 12px system-ui, sans-serif; }
+.music-companion-trigger:disabled { cursor: default; opacity: .65; }
+.music-companion-hint, .music-companion-caveat { margin: 12px 0 0; color: #b8c5ae; font-size: 12px; line-height: 1.55; }
+.music-companion-content { display: grid; gap: 15px; margin-top: 14px; }
+.music-companion-content section { padding-top: 13px; border-top: 1px solid #aebc9e2e; }
+.music-companion-content h4 { margin: 0 0 8px; color: #eee9c8; font-size: 13px; letter-spacing: .04em; }
+.music-companion-introduction, .music-companion-character { margin: 0; font-size: 13px; line-height: 1.75; }
+.music-companion-character { color: #c5d0bb; }
+.music-companion-difference { padding: 12px; border: 1px solid #d9d1a959; border-radius: 9px; background: #273b2b77; }
+.music-companion-difference p { margin: 6px 0 0; font-size: 12px; line-height: 1.6; }
+.music-companion-difference strong { color: #f1e8b8; }
+.music-companion-instruments, .music-companion-guide { display: grid; gap: 8px; margin: 0; padding-left: 18px; }
+.music-companion-instruments li, .music-companion-guide li { font-size: 12px; line-height: 1.55; }
+.music-companion-instruments span { margin-left: 7px; padding: 2px 5px; border-radius: 7px; color: #243523; background: #d3dcad; font-size: 10px; }
+.music-companion-instruments p, .music-companion-guide p { margin: 2px 0 0; color: #bdc8b3; }
+.music-suggestions-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.music-suggestions-heading button, .music-suggestion-list button { cursor: pointer; padding: 6px 10px; border: 1px solid #d9d1a977; border-radius: 14px; color: #e6e8c8; background: #24382b; font: 11px system-ui, sans-serif; }
+.music-suggestions-heading button:disabled { cursor: default; opacity: .55; }
+.music-suggestion-list { display: grid; gap: 8px; }
+.music-suggestion-list article { padding: 10px; border: 1px solid #aebc9e3d; border-radius: 8px; background: #14271d8c; }
+.music-suggestion-list h5 { margin: 0; color: #f0e9c8; font-size: 13px; }
+.music-suggestion-list p { margin: 5px 0 9px; color: #c1cdb7; font-size: 12px; line-height: 1.55; }
 .creation-actions { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 25px; }
 .creation-actions button { cursor: pointer; font: 15px system-ui, sans-serif; }
 .creation-submit { min-width: 150px; padding: 11px 24px; border: 1px solid #dddfb6; border-radius: 24px; color: #14271e; background: #e5e6bd; }
@@ -70,3 +101,60 @@ html, body, #root { width: 100%; min-width: 320px; min-height: 100%; margin: 0; 
   .world-overlay { flex-wrap: wrap; }
   .interaction-hint { order: 3; width: 100%; min-width: 0; }
 }
+/* Full-world development preview generated from the same TerrainMap as the game. */
+.map-overview-page {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #0b1712;
+}
+
+.map-overview-canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+.map-overview-legend {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 7px 14px;
+  padding: 12px 14px;
+  border: 1px solid rgb(238 232 207 / 24%);
+  border-radius: 10px;
+  color: #eee8cf;
+  background: rgb(11 23 18 / 82%);
+  font: 12px/1.2 system-ui, sans-serif;
+  backdrop-filter: blur(8px);
+}
+
+.map-overview-legend strong {
+  grid-column: 1 / -1;
+  margin-bottom: 2px;
+  letter-spacing: .12em;
+}
+
+.map-overview-legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.map-overview-legend i {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.mini-map-backdrop { position: fixed; inset: 0; z-index: 12; display: grid; place-items: center; padding: 20px; background: rgb(4 13 8 / 45%); backdrop-filter: blur(2px); }
+.mini-map-panel { width: min(860px, 94vw); max-height: 90vh; padding: 18px; border: 1px solid rgb(232 227 192 / 62%); border-radius: 16px; background: #12251beF; box-shadow: 0 24px 80px #020805cc; }
+.mini-map-header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin: 0 2px 13px; }
+.mini-map-header h2 { margin: 0; font-size: 26px; font-weight: 400; }
+.mini-map-header span { color: #c9d2ba; font: 12px system-ui, sans-serif; }
+.mini-map-canvas { display: block; width: 100%; max-height: calc(90vh - 82px); border: 1px solid rgb(239 234 207 / 28%); border-radius: 8px; background: #3d6949; image-rendering: pixelated; }
+.mini-map-player { fill: #f4e477; stroke: #142116; stroke-width: 9px; }

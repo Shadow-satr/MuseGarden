@@ -1,6 +1,7 @@
 """一次记忆创作与后续音乐版本修改的应用层编排。"""
 
 import json
+import random
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
@@ -14,6 +15,7 @@ from ai_engine.creation.schema import BlueprintRevision, CreationDraft
 from ai_engine.memory.schema import MusicMemory
 from ai_engine.memory.store import save_memory
 from ai_engine.pipeline import run_creation_pipeline
+from application.garden_planting import plan_planting
 from flower_engine import (
     FlowerArtifactStore,
     FlowerLifecycleService,
@@ -28,6 +30,7 @@ class DemoMusicVersion(BaseModel):
     audio_artifact_id: UUID
     version: int = Field(ge=1)
     modification_text: str | None = None
+    display_name: str | None = Field(default=None, min_length=1, max_length=60)
     created_at: datetime
 
 
@@ -105,6 +108,7 @@ class CreationService:
         music_service: MusicGenerationService,
         blueprint_pipeline: Callable[[str], CreationDraft] | None = None,
         blueprint_editor: Callable[[str, MusicBlueprint, str], MusicBlueprint] = edit_blueprint,
+        flower_size_roll: Callable[[], float] = random.random,
     ) -> None:
         self.data_root = Path(data_root)
         self.music_service = music_service
@@ -112,6 +116,7 @@ class CreationService:
             lambda text: run_creation_pipeline(text, use_memory=False)
         )
         self.blueprint_editor = blueprint_editor
+        self.flower_size_roll = flower_size_roll
         self.audio_store = music_service.audio_store
         self.music_version_service = MusicVersionService(self.audio_store)
         self.garden_store = GardenStore(data_root)
@@ -132,7 +137,17 @@ class CreationService:
         if not isinstance(position, tuple) or len(position) != 2:
             raise ValueError("position 必须为 (x, y)")
         x, y = position
-        garden = self.gardens.validate_planting_position(garden_id, x, y)
+        garden = self.garden_store.get_garden(garden_id)
+        if garden is None:
+            raise ValueError(f"Garden 不存在：{garden_id}")
+        uses_terrain_map = garden.width >= 91 and garden.height >= 68
+        plan = plan_planting(
+            (x, y),
+            self.garden_store.list_plantings(garden.id),
+            prefer_large=self.flower_size_roll() < 0.5,
+        ) if uses_terrain_map else None
+        if plan is None:
+            self.gardens.validate_planting_position(garden.id, x, y)
 
         draft = self.blueprint_pipeline(text.strip())
         revision = BlueprintRevision(
@@ -162,7 +177,15 @@ class CreationService:
         self.final_store.save(final)
         seed = final.id.int & ((1 << 63) - 1)
         flower = self.flowers.create_for_creation(final.id, seed)
-        planting = self.gardens.plant_flower(garden.id, flower.id, x, y)
+        planting = self.gardens.plant_flower(
+            garden.id,
+            flower.id,
+            x,
+            y,
+            placement_schema_version="terrain-v1" if plan else "legacy",
+            flower_size=plan.flower_size if plan else "small",
+            occupied_tiles=plan.occupied_tiles if plan else (),
+        )
         record = DemoCreationRecord(
             creation_id=final.id,
             text=draft.text,
@@ -176,6 +199,7 @@ class CreationService:
                 revision_id=revision.id,
                 audio_artifact_id=audio.id,
                 version=1,
+                display_name="初始版本",
                 created_at=audio.created_at,
             ),),
             blueprint_revisions=(revision,),
@@ -217,6 +241,7 @@ class CreationService:
                 audio_artifact_id=audio.id,
                 version=revision.version,
                 modification_text=modification_text.strip(),
+                display_name=f"音乐版本 {revision.version}",
                 created_at=audio.created_at,
             )),
             "blueprint_revisions": (*record.blueprint_revisions, revision),
@@ -245,6 +270,35 @@ class CreationService:
         selected = record.model_copy(update={"current_audio_artifact_id": target_audio_id})
         self.records.replace(selected)
         return self.describe(selected)
+
+    def rename_music_version(
+        self,
+        creation_id: UUID | str,
+        audio_artifact_id: UUID | str,
+        display_name: str,
+    ) -> dict:
+        name = display_name.strip()
+        if not name:
+            raise ValueError("版本名称不能为空")
+        record = self.records.get(creation_id)
+        if record is None:
+            raise ValueError("创作不存在")
+        final = self.final_store.get(record.creation_id)
+        if final is None:
+            raise RuntimeError("创作缺少已归档的 Blueprint")
+        record = self._with_version_history(record, final, persist=True)
+        target_audio_id = UUID(str(audio_artifact_id))
+        target = next((item for item in record.music_versions if item.audio_artifact_id == target_audio_id), None)
+        if target is None:
+            raise ValueError("音乐版本不属于这段记忆")
+        renamed = record.model_copy(update={
+            "music_versions": tuple(
+                item.model_copy(update={"display_name": name}) if item.audio_artifact_id == target_audio_id else item
+                for item in record.music_versions
+            ),
+        })
+        self.records.replace(renamed)
+        return self.describe(renamed)
 
     def list_creations(self, garden_id: UUID | str) -> list[dict]:
         target = UUID(str(garden_id))
@@ -299,6 +353,8 @@ class CreationService:
                 "artifact_id": str(flower.id),
                 "species": flower.species,
                 "render_spec": flower.render_spec.model_dump(mode="json"),
+                "size": planting.flower_size,
+                "occupied_tiles": [list(tile) for tile in planting.occupied_tiles],
             } if flower is not None and planting is not None else None,
             "music": {
                 "artifact_id": str(audio.id),
@@ -312,6 +368,7 @@ class CreationService:
                     "audio_artifact_id": str(version.audio_artifact_id),
                     "version": version.version,
                     "modification_text": version.modification_text,
+                    "display_name": version.display_name or ("初始版本" if version.version == 1 else f"音乐版本 {version.version}"),
                     "created_at": version.created_at.isoformat(),
                     "url": f"/api/audio/{version.audio_artifact_id}",
                     "is_latest": version.version == record.music_revision,
@@ -323,6 +380,9 @@ class CreationService:
                 "record_id": str(record.planting_record_id),
                 "x": planting.x,
                 "y": planting.y,
+                "placement_schema_version": planting.placement_schema_version,
+                "flower_size": planting.flower_size,
+                "occupied_tiles": [list(tile) for tile in planting.occupied_tiles],
             } if planting is not None and flower is not None else None,
         }
 

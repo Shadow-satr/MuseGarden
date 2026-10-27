@@ -30,7 +30,7 @@ export const PLAYER_HEIGHT = CALIBRATED_PLAYER_HEIGHT;
 const SPEED_PX_PER_SECOND = 120;
 const WALK_FPS = 9;
 const MAX_DELTA_MS = 100;
-const PLAYER_SHEET_URL = new URL("../../assets/player-walk-sheet.png", import.meta.url).href;
+const PLAYER_SHEET_URL = new URL("../../assets/player-walk-sheet-v7.png", import.meta.url).href;
 
 const SHEET = sheetData as PlayerSheetMeta;
 
@@ -77,6 +77,7 @@ export class Player {
     private readonly cellSize: number,
     private readonly animations: PlayerAnimations,
     initialPosition?: { x: number; y: number },
+    private readonly canStandAt: (x: number, y: number) => boolean = () => true,
   ) {
     this.container.label = "player";
     this.sprite = new Sprite(animations.front.idle);
@@ -147,8 +148,10 @@ export class Player {
     }
 
     const distance = this.speed * elapsed / 1000;
-    this.container.x += this.movementX * distance;
-    this.container.y += this.movementY * distance;
+    const nextX = this.container.x + this.movementX * distance;
+    if (this.canStandAt(nextX, this.container.y)) this.container.x = nextX;
+    const nextY = this.container.y + this.movementY * distance;
+    if (this.canStandAt(this.container.x, nextY)) this.container.y = nextY;
     this.clampToWorld();
   }
 

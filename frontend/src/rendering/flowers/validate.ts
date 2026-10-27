@@ -142,7 +142,33 @@ export function assertGardenRenderSpec(value: unknown): asserts value is GardenR
     }
     const position = `${flower.grid_x}:${flower.grid_y}`;
     if (occupied.has(position)) throw new Error("花园存在重复位置");
-    occupied.add(position);
+    const placementVersion = flower.placement_schema_version ?? "legacy";
+    const flowerSize = flower.flower_size ?? "small";
+    const occupiedTiles = flower.occupied_tiles ?? [];
+    if (placementVersion !== "legacy" && placementVersion !== "terrain-v1") {
+      throw new Error("花朵占地版本无效");
+    }
+    if (flowerSize !== "small" && flowerSize !== "large") throw new Error("花朵尺寸无效");
+    if (!Array.isArray(occupiedTiles)) throw new Error("花朵占地格式无效");
+    if (placementVersion === "terrain-v1") {
+      const expectedCount = flowerSize === "large" ? 9 : 1;
+      if (occupiedTiles.length !== expectedCount) throw new Error("花朵占地数量无效");
+      if (!occupiedTiles.some((tile: unknown) => Array.isArray(tile) && tile[0] === flower.grid_x && tile[1] === flower.grid_y)) {
+        throw new Error("花朵中心格不在占地范围内");
+      }
+      for (const tile of occupiedTiles) {
+        if (!Array.isArray(tile) || tile.length !== 2 ||
+            !Number.isInteger(tile[0]) || !Number.isInteger(tile[1]) ||
+            tile[0] < 0 || tile[0] >= spec.grid_width || tile[1] < 0 || tile[1] >= spec.grid_height) {
+          throw new Error("花朵占地坐标无效");
+        }
+        const tileKey = `${tile[0]}:${tile[1]}`;
+        if (occupied.has(tileKey)) throw new Error("花园存在重叠占地");
+        occupied.add(tileKey);
+      }
+    } else {
+      occupied.add(position);
+    }
     lastZIndex = flower.z_index;
   }
 }

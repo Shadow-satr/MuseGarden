@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 const world = vi.hoisted(() => ({
   init: vi.fn(), destroy: vi.fn(), setInputPaused: vi.fn(), refreshGarden: vi.fn(),
+  playerWorldPosition: { x: 724, y: 543 },
   interact: null as null | ((target: unknown) => void),
 }));
 vi.mock("./world/GardenWorld", () => ({
@@ -14,6 +15,7 @@ vi.mock("./world/GardenWorld", () => ({
     setInputPaused = world.setInputPaused;
     refreshGarden = world.refreshGarden;
     currentGardenId = "garden-1";
+    get playerWorldPosition() { return world.playerWorldPosition; }
     constructor(_host: HTMLElement, _onTargetChange: unknown, onInteract: (target: unknown) => void) {
       world.interact = onInteract;
     }
@@ -84,6 +86,32 @@ describe("Garden World shell", () => {
     render(<App />);
     await waitFor(() => expect(screen.getByText(/API unavailable/)).toBeTruthy());
     expect(world.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens the map with M, pauses input, then closes with M or Escape", async () => {
+    world.init.mockResolvedValue({ source: "live" });
+    render(<App />);
+    await waitFor(() => expect(screen.getByText("花园已就绪")).toBeTruthy());
+    fireEvent.keyDown(window, { key: "m" });
+    expect(screen.getByRole("dialog", { name: "Garden Map" })).toBeTruthy();
+    expect(world.setInputPaused).toHaveBeenLastCalledWith(true);
+    expect(screen.getByLabelText("完整花园地图与玩家位置").querySelector("circle")?.getAttribute("cx")).toBe("724");
+    fireEvent.keyDown(window, { key: "m" });
+    expect(screen.queryByRole("dialog", { name: "Garden Map" })).toBeNull();
+    expect(world.setInputPaused).toHaveBeenLastCalledWith(false);
+    fireEvent.keyDown(window, { key: "m" });
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: "Garden Map" })).toBeNull();
+  });
+
+  it("does not open the map while a creation panel or text input owns the keyboard", async () => {
+    world.init.mockResolvedValue({ source: "live" });
+    render(<App />);
+    act(() => world.interact?.({ kind: "plant-spot", id: "spot:8,3", prompt: "种下记忆" }));
+    fireEvent.keyDown(window, { key: "m" });
+    expect(screen.queryByRole("dialog", { name: "Garden Map" })).toBeNull();
+    fireEvent.keyDown(screen.getByRole("textbox", { name: "写下这段记忆" }), { key: "m" });
+    expect(screen.queryByRole("dialog", { name: "Garden Map" })).toBeNull();
   });
 
   it("opens from a plant spot, pauses input, clears on cancel, and opens again", async () => {

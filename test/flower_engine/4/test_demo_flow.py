@@ -43,7 +43,12 @@ class FakeMusicClient:
         )
 
 
-def make_service(tmp_path: Path):
+def make_service(
+    tmp_path: Path,
+    *,
+    garden_size: tuple[int, int] = (4, 4),
+    flower_size_roll=lambda: 0.9,
+):
     client = FakeMusicClient()
     seen_texts = []
 
@@ -70,9 +75,10 @@ def make_service(tmp_path: Path):
         music_service=MusicGenerationService(client, audio_store),
         blueprint_pipeline=ai_pipeline,
         blueprint_editor=editor,
+        flower_size_roll=flower_size_roll,
     )
     garden = GardenService(service.garden_store, service.flower_store).create_garden(
-        "测试花园", 4, 4
+        "测试花园", *garden_size
     )
     return service, garden, client, seen_texts
 
@@ -92,6 +98,32 @@ def test_create_memory_persists_all_four_engine_outputs(tmp_path: Path) -> None:
     assert len(service.flower_store.list_all()) == 1
     assert len(service.garden_store.list_plantings(garden.id)) == 1
     assert service.list_creations(garden.id) == [result]
+
+
+@pytest.mark.parametrize(
+    ("roll", "expected_size", "expected_tiles"),
+    [(0.0, "large", 9), (0.9, "small", 1)],
+)
+def test_terrain_garden_persists_injected_flower_size_once(
+    tmp_path: Path,
+    roll: float,
+    expected_size: str,
+    expected_tiles: int,
+) -> None:
+    service, garden, _, _ = make_service(
+        tmp_path,
+        garden_size=(91, 68),
+        flower_size_roll=lambda: roll,
+    )
+    created = service.create_memory("比赛结束后终于松了一口气", garden.id, (22, 18))
+    planting = service.garden_store.list_plantings(garden.id)[0]
+    assert created["flower"]["size"] == expected_size
+    assert created["planting"]["flower_size"] == expected_size
+    assert planting.flower_size == expected_size
+    assert len(planting.occupied_tiles) == expected_tiles
+    assert service.list_creations(garden.id)[0]["planting"]["occupied_tiles"] == [
+        list(tile) for tile in planting.occupied_tiles
+    ]
 
 
 def test_music_regeneration_keeps_flower_and_planting_unchanged(tmp_path: Path) -> None:
@@ -140,6 +172,22 @@ def test_selecting_history_persists_without_changing_memory_or_flower(tmp_path: 
         original["music"]["artifact_id"], revised["music"]["artifact_id"],
     ]
     assert service.list_creations(garden.id)[0]["music"]["version"] == 1
+
+
+def test_renaming_music_version_persists_without_changing_audio_or_flower(tmp_path: Path) -> None:
+    service, garden, _, _ = make_service(tmp_path)
+    original = service.create_memory("比赛结束后终于松了一口气", garden.id, (2, 1))
+    legacy_record = service.records.get(original["creation_id"])
+    assert legacy_record is not None
+    service.records.replace(legacy_record.model_copy(update={"music_versions": ()}))
+
+    renamed = service.rename_music_version(
+        original["creation_id"], original["music"]["artifact_id"], "晨光版"
+    )
+
+    assert renamed["music_versions"][0]["display_name"] == "晨光版"
+    assert renamed["music"]["artifact_id"] == original["music"]["artifact_id"]
+    assert renamed["flower"] == original["flower"]
 
 
 def test_failed_revision_keeps_current_and_history_unchanged(tmp_path: Path) -> None:

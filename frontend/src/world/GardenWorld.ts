@@ -1,9 +1,12 @@
-import { Application, type Texture } from "pixi.js";
+import { Application } from "pixi.js";
 
 import { loadGarden, type GardenLoadResult } from "../api/garden";
 import type { GardenRenderSpec } from "../rendering/flowers/types";
 import { gardenViewportSize, mapWorldContentSize, WorldScene } from "./WorldScene";
-import { loadMapArtTexture } from "./MapArt";
+import { gardenWorldPosition } from "./GardenMapLayout";
+import { PLOT_CELL_SIZE } from "./PlotCalibration";
+import { isWalkableWorldPosition } from "./TerrainMap";
+import { loadTerrainTextures, type TerrainTextures } from "./TerrainTextures";
 import { loadPlayerAnimations, Player, type PlayerAnimations } from "./entities/Player";
 import { createInteractables, InteractionManager, type Interactable } from "./interactions";
 
@@ -14,9 +17,9 @@ export class GardenWorld {
   private app: Application | null = null;
   private scene: WorldScene | null = null;
   private player: Player | null = null;
-  private mapTexture: Texture | null = null;
   private gardenId: string | null = null;
   private interactions: InteractionManager | null = null;
+  private terrainTextures: TerrainTextures | null = null;
   private disposed = false;
   private inputPaused = false;
   private elapsedMs = 0;
@@ -54,14 +57,14 @@ export class GardenWorld {
       return null;
     }
 
-    const [playerAnimations, mapTexture] = await Promise.all([loadPlayerAnimations(), loadMapArtTexture()]);
+    const [playerAnimations, terrainTextures] = await Promise.all([loadPlayerAnimations(), loadTerrainTextures()]);
     if (this.disposed) return null;
-    this.mapTexture = mapTexture;
 
     app.canvas.className = "world-canvas";
     app.canvas.setAttribute("aria-label", "MuseGarden 花园世界");
     this.host.style.aspectRatio = `${viewport.width} / ${viewport.height}`;
     this.host.replaceChildren(app.canvas);
+    this.terrainTextures = terrainTextures;
     this.render(result.spec, playerAnimations);
     app.ticker.add(this.tick);
     window.addEventListener("keydown", this.onKeyDown);
@@ -78,6 +81,12 @@ export class GardenWorld {
     return this.gardenId;
   }
 
+  /** Player coordinates are the feet in the shared world coordinate system. */
+  get playerWorldPosition(): { x: number; y: number } | null {
+    if (!this.player) return null;
+    return { x: this.player.container.x, y: this.player.container.y };
+  }
+
   async refreshGarden(
     expected?: { recordId: string; flowerArtifactId: string; x: number; y: number },
     signal?: AbortSignal,
@@ -91,11 +100,10 @@ export class GardenWorld {
       flower.flower_artifact_id === expected.flowerArtifactId &&
       flower.grid_x === expected.x && flower.grid_y === expected.y,
     )) throw new Error("新花尚未出现在选中的空地，请重试刷新");
-    if (!this.app || !this.scene || !this.player) throw new Error("花园尚未就绪");
+    if (!this.app || !this.scene || !this.player || !this.terrainTextures) throw new Error("花园尚未就绪");
 
     const targets = createInteractables(spec);
-    if (!this.mapTexture) throw new Error("地图资源尚未就绪");
-    const next = new WorldScene(spec, this.mapTexture);
+    const next = new WorldScene(spec, this.terrainTextures);
     const old = this.scene;
     old.entities.removeChild(this.player.container);
     next.setPlayerCell(this.player.container.x, this.player.container.y);
@@ -117,15 +125,17 @@ export class GardenWorld {
   render(spec: GardenRenderSpec, playerAnimations: PlayerAnimations): void {
     if (this.disposed || !this.app) return;
     const targets = createInteractables(spec);
-    if (!this.mapTexture) return;
-    const next = new WorldScene(spec, this.mapTexture);
+    if (!this.terrainTextures) throw new Error("地形素材尚未就绪");
+    const next = new WorldScene(spec, this.terrainTextures);
     const worldSize = mapWorldContentSize();
-    // The current creation grid begins in the upper-left garden field of the
-    // supplied map; Step 13 will assign each painted field its stable IDs.
-    const player = new Player(worldSize.width, worldSize.height, spec.cell_size, playerAnimations, {
+    const start = gardenWorldPosition(8, 5, {
       x: spec.pixel_width / 2,
       y: spec.pixel_height / 2,
     });
+    const player = new Player(worldSize.width, worldSize.height, PLOT_CELL_SIZE, playerAnimations, {
+      x: start.x,
+      y: start.y,
+    }, isWalkableWorldPosition);
     next.setPlayerCell(player.container.x, player.container.y);
     next.entities.addChild(player.container);
     next.setCameraTarget(player.container.x, player.container.y);
@@ -207,9 +217,9 @@ export class GardenWorld {
     this.scene = null;
     this.gardenId = null;
     this.player = null;
+    this.terrainTextures = null;
     this.interactions = null;
     this.app = null;
-    this.mapTexture = null;
     this.host.replaceChildren();
     this.host.style.removeProperty("aspect-ratio");
     this.onTargetChange(null);

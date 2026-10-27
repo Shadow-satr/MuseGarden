@@ -51,6 +51,8 @@ export type GrowthDirection =
   | "rising"
   | "releasing";
 
+export type FlowerSize = "small" | "large";
+
 export const RENDER_LAYER_ORDER = [
   "shadow",
   "stem",
@@ -136,6 +138,9 @@ export interface GardenRenderFlower {
   pixel_y: number;
   scale: number;
   z_index: number;
+  placement_schema_version?: "legacy" | "terrain-v1";
+  flower_size?: FlowerSize;
+  occupied_tiles?: [number, number][];
   render_spec: FlowerRenderSpec;
 }
 

@@ -90,7 +90,7 @@ describe("FlowerDetailOverlay", () => {
     const history = { ...memory, latest_music_version: 2, music_versions: [{ ...memory.music_versions[0], is_latest: false }, v2] };
     const user = userEvent.setup();
     const view = render(<FlowerDetailOverlay status="success" memory={history} error="" {...props} onSelectVersion={select} />);
-    expect(screen.getByText("初始版本")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "修改 V1 的名称" }).textContent).toBe("初始版本");
     expect(screen.getByText("更温柔")).toBeTruthy();
     const instruction = screen.getByRole("button", { name: "展开 V2 修改要求" });
     await user.click(instruction);
@@ -98,5 +98,23 @@ describe("FlowerDetailOverlay", () => {
     expect(view.container.querySelector(".music-version-full-instruction")?.textContent).toBe("更温柔");
     await user.click(screen.getAllByRole("button", { name: "选择 V2 音乐" })[0]);
     expect(select).toHaveBeenCalledWith("audio-2");
+  });
+
+  it("saves a version name with Enter and abandons it with Escape", async () => {
+    const rename = vi.fn().mockResolvedValue(true);
+    const user = userEvent.setup();
+    render(<FlowerDetailOverlay status="success" memory={memory} error="" {...props} onRenameVersion={rename} />);
+    await user.click(screen.getByRole("button", { name: "修改 V1 的名称" }));
+    const input = screen.getByRole("textbox", { name: "V1 版本名称" });
+    await user.clear(input);
+    await user.type(input, "晨光版{Enter}");
+    await waitFor(() => expect(rename).toHaveBeenCalledWith("audio-1", "晨光版"));
+
+    await user.click(screen.getByRole("button", { name: "修改 V1 的名称" }));
+    const secondInput = screen.getByRole("textbox", { name: "V1 版本名称" });
+    await user.clear(secondInput);
+    await user.type(secondInput, "不会保存{Escape}");
+    expect(screen.queryByRole("textbox", { name: "V1 版本名称" })).toBeNull();
+    expect(rename).toHaveBeenCalledTimes(1);
   });
 });

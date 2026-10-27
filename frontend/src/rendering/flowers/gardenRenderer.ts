@@ -47,7 +47,8 @@ export function createGardenScene(input: unknown, options: { includeBackground?:
     const anchor = new Container();
     anchor.label = `planting:${placement.planting_record_id}`;
     anchor.position.set(placement.pixel_x, placement.pixel_y);
-    anchor.scale.set(placement.scale);
+    const footprintScale = placement.flower_size === "large" ? 0.68 : 0.24;
+    anchor.scale.set(placement.scale * footprintScale);
     anchor.zIndex = placement.z_index;
     flower.container.position.set(-24, -59);
     anchor.addChild(flower.container);

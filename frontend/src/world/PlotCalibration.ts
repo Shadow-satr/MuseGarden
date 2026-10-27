@@ -5,12 +5,12 @@
  */
 export const PLOT_COLUMNS = 3;
 export const PLOT_ROWS = 2;
-// A soil cell is one flower's planting place. Keep the established 48px
-// garden-cell scale and the existing 58px player rather than enlarging either.
-export const PLOT_CELL_SIZE = 48;
-export const PLOT_CELL_GAP = 8;
-export const PLOT_EDGE_PADDING = 18;
-export const CALIBRATED_PLAYER_HEIGHT = 58;
+// Each map grid has one quarter of the original area, so its side length is
+// half the original preview grid. The visible map remains unlined.
+export const PLOT_CELL_SIZE = 16;
+export const PLOT_CELL_GAP = 2;
+export const PLOT_EDGE_PADDING = 6;
+export const CALIBRATED_PLAYER_HEIGHT = 30;
 export const PLAYER_TO_PLOT_CELL_RATIO = CALIBRATED_PLAYER_HEIGHT / PLOT_CELL_SIZE;
 
 export interface PlotBounds {

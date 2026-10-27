@@ -4,9 +4,9 @@ from uuid import uuid4
 
 import pytest
 
-pytest.importorskip("librosa", reason="Music Companion 的 librosa 依赖尚未安装")
-
-from music_companion.audio_analysis import analyze_wav
+from music_companion.audio_analysis import analyze_audio_artifact, analyze_wav
+from music_engine.audio_store import AudioStore
+from music_engine.schema import AceStepGenerationResult, MusicGenerationSpec
 
 
 def _write_wav(path: Path, *, channels: int, seconds: float, silent: bool = False) -> bytes:
@@ -66,3 +66,30 @@ def test_invalid_path_and_undecodable_file_are_clear_errors(tmp_path):
     invalid.write_text("不是一个 WAV", encoding="utf-8")
     with pytest.raises(ValueError, match="无法解码"):
         analyze_wav(invalid)
+
+
+def test_analyze_audio_artifact_reads_through_real_audio_store(tmp_path):
+    source = tmp_path / "source.wav"
+    audio_bytes = _write_wav(source, channels=2, seconds=0.2)
+    store = AudioStore(tmp_path / "audio-store")
+    artifact = store.save(
+        draft_id=uuid4(),
+        revision_id=uuid4(),
+        generation_spec=MusicGenerationSpec(
+            caption="warm instrumental piano",
+            bpm=100,
+            key="C Major",
+        ),
+        generation_result=AceStepGenerationResult(
+            task_id="audio-analysis-test",
+            audio_bytes=audio_bytes,
+            content_type="audio/wav",
+        ),
+    )
+
+    result = analyze_audio_artifact(store, artifact.id)
+
+    assert result.audio_artifact_id == artifact.id
+    assert result.source_name == Path(artifact.file_path).name
+    assert result.channels == 2
+    assert store.load_audio(artifact.id) == audio_bytes

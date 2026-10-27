@@ -8,6 +8,8 @@ __pycache__/
 
 # Temporary pip installation workspaces accidentally created in the project root
 /pip-*/
+/.pip-tmp/
+/.model-cache/
 /tmp*
 
 # Frontend build output and incremental compiler state
@@ -28,3 +30,14 @@ __pycache__/
 /database/local/
 /database/preview/audio/
 /database/preview/*.json
+
+# Local model caches and disposable end-to-end verification output never belong
+# in the source repository. Keep them on the workstation for local playback.
+/models/
+/development/http-rename-verification/
+/development/http-rename-verification-2/
+
+# Credentials remain local; an explicitly named example file may be committed.
+.env
+.env.*
+!.env.example

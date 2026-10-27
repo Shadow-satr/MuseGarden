@@ -101,14 +101,14 @@ describe("GardenWorld keyboard integration", () => {
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "w" }));
     app.step(50);
     app.step(50);
-    expect(player.y).toBeCloseTo(228);
+    expect(player.y).toBeCloseTo(372);
     window.dispatchEvent(new KeyboardEvent("keyup", { key: "w" }));
     app.step(50);
-    expect(player.y).toBeCloseTo(228);
+    expect(player.y).toBeCloseTo(372);
 
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
     app.step(100);
-    expect(player.x).toBeCloseTo(396);
+    expect(player.x).toBeCloseTo(460);
     window.dispatchEvent(new KeyboardEvent("keyup", { key: "ArrowRight" }));
 
     for (const [key, dx, dy] of [
@@ -130,7 +130,7 @@ describe("GardenWorld keyboard integration", () => {
     expect(host.style.aspectRatio).toBe("");
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "d" }));
     app.step(100);
-    expect(player.x).toBeCloseTo(384);
+    expect(player.x).toBeCloseTo(448);
   });
 
   it("updates the target after movement and invokes it once on E", async () => {
@@ -140,12 +140,12 @@ describe("GardenWorld keyboard integration", () => {
     world.loadGarden = vi.fn().mockResolvedValue({ spec, source: "live" });
     await world.init();
     const app = appState.current as TestApplication;
-    expect(onTargetChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: "spot:8,5" }));
+    expect(onTargetChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: "spot:28,24" }));
 
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "w" }));
     for (let i = 0; i < 6; i += 1) app.step(100);
     window.dispatchEvent(new KeyboardEvent("keyup", { key: "w" }));
-    expect(onTargetChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: "spot:8,3" }));
+    expect(onTargetChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: "spot:28,19" }));
 
     const openingKey = new KeyboardEvent("keydown", { key: "e", cancelable: true });
     window.dispatchEvent(openingKey);
@@ -157,7 +157,7 @@ describe("GardenWorld keyboard integration", () => {
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "s" }));
     for (let i = 0; i < 6; i += 1) app.step(100);
     window.dispatchEvent(new KeyboardEvent("keyup", { key: "s" }));
-    expect(onTargetChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: "spot:8,5" }));
+    expect(onTargetChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: "spot:28,24" }));
     world.destroy();
   });
 
@@ -171,21 +171,21 @@ describe("GardenWorld keyboard integration", () => {
 
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "w" }));
     for (let i = 0; i < 6; i += 1) app.step(100);
-    expect(player.y).toBeCloseTo(168);
+    expect(player.y).toBeCloseTo(312);
     world.setInputPaused(true);
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "e" }));
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "d" }));
     app.step(100);
-    expect(player.x).toBeCloseTo(384);
-    expect(player.y).toBeCloseTo(168);
+    expect(player.x).toBeCloseTo(448);
+    expect(player.y).toBeCloseTo(312);
     expect(onInteract).not.toHaveBeenCalled();
 
     world.setInputPaused(false);
     app.step(100);
-    expect(player.x).toBeCloseTo(384);
+    expect(player.x).toBeCloseTo(448);
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "d" }));
     app.step(100);
-    expect(player.x).toBeCloseTo(396);
+    expect(player.x).toBeCloseTo(460);
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "e" }));
     expect(onInteract).toHaveBeenCalledTimes(1);
     world.destroy();
@@ -201,21 +201,23 @@ describe("GardenWorld keyboard integration", () => {
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "w" }));
     for (let i = 0; i < 6; i += 1) app.step(100);
     window.dispatchEvent(new KeyboardEvent("keyup", { key: "w" }));
-    expect(onTargetChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: "spot:8,3" }));
+    expect(onTargetChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: "spot:28,19" }));
     world.setInputPaused(true);
     const flower = {
       planting_record_id: "planting-1", flower_artifact_id: "flower-1",
-      grid_x: 8, grid_y: 3, pixel_x: 408, pixel_y: 168,
+      grid_x: 28, grid_y: 19, pixel_x: 456, pixel_y: 312,
+      placement_schema_version: "terrain-v1", flower_size: "small",
+      occupied_tiles: [[28, 19]],
     };
     vi.mocked(loadGarden).mockResolvedValue({ spec: { ...spec, flowers: [flower] } as never, source: "live" });
-    await expect(world.refreshGarden({ recordId: "planting-1", flowerArtifactId: "flower-1", x: 9, y: 3 }))
+    await expect(world.refreshGarden({ recordId: "planting-1", flowerArtifactId: "flower-1", x: 29, y: 19 }))
       .rejects.toThrow("新花尚未出现在选中的空地");
-    expect(onTargetChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: "spot:8,3" }));
-    await world.refreshGarden({ recordId: "planting-1", flowerArtifactId: "flower-1", x: 8, y: 3 });
+    expect(onTargetChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: "spot:28,19" }));
+    await world.refreshGarden({ recordId: "planting-1", flowerArtifactId: "flower-1", x: 28, y: 19 });
     const refreshedPlayer = app.stage.children[0].children[0].children[0];
     expect(refreshedPlayer).toBe(player);
-    expect(refreshedPlayer.x).toBe(384);
-    expect(refreshedPlayer.y).toBe(168);
+    expect(refreshedPlayer.x).toBe(448);
+    expect(refreshedPlayer.y).toBe(312);
     expect(onTargetChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: "flower:planting-1" }));
     expect(world.currentGardenId).toBe("garden-1");
     world.destroy();

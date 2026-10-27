@@ -1,0 +1,7 @@
+# Step 2 仅在启用 Music-CLAP POC 时安装。
+# RTX 4060 当前驱动支持 CUDA 12.4；必须从 PyTorch 官方 CUDA wheel 源取得 torch，
+# 否则普通 PyPI 镜像会装成 CPU 版。
+--index-url https://download.pytorch.org/whl/cu124
+--extra-index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
+torch==2.6.0
+transformers>=4.45,<5

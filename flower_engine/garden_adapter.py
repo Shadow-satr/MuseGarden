@@ -44,10 +44,10 @@ def garden_to_render_spec(
             raise ValueError("PlantingRecord 不属于当前 Garden")
         if planting.x >= garden.width or planting.y >= garden.height:
             raise ValueError("PlantingRecord 坐标超出 Garden 边界")
-        position = (planting.x, planting.y)
-        if position in occupied:
+        planting_tiles = set(planting.occupied_tiles or ((planting.x, planting.y),))
+        if occupied.intersection(planting_tiles):
             raise ValueError("Garden 中存在重复种植位置")
-        occupied.add(position)
+        occupied.update(planting_tiles)
 
         artifact = artifacts_by_id.get(planting.flower_artifact_id)
         if artifact is None:
@@ -66,6 +66,9 @@ def garden_to_render_spec(
                 pixel_y=round((planting.y + 1) * cell_size, 4),
                 scale=round(0.75 + artifact.flower_spec.size * 0.5, 4),
                 z_index=planting.y * garden.width + planting.x,
+                placement_schema_version=planting.placement_schema_version,
+                flower_size=planting.flower_size,
+                occupied_tiles=planting.occupied_tiles,
                 render_spec=artifact.render_spec,
             )
         )

@@ -1,6 +1,6 @@
 """MuseGarden Frontend 开发进度，按正式章节顺序记录。"""
 
-CURRENT_STATUS = "Frontend Step 12 — Map Art Integration & Viewport Calibration 已完成；正式大地图与 3 倍田地视角已接入，等待 Step 13 种植区域映射。"
+CURRENT_STATUS = "核心功能开发阶段暂时收尾：Garden World、玩家探索、种植与记忆回访、真实 Creation / 音乐流程、版本修改、Grid Map V1、Mini Map 与基础地形美术均已完成。后续只按需进行美化、体验维护与 Bug 修复；不自动启动新的 Frontend Step。环境装饰仅保留为未实施的开发参考，不属于当前版本功能。"
 
 STEP_1 = """
 Frontend Step 1 — Garden World Shell
@@ -20,6 +20,28 @@ Frontend Step 1 — Garden World Shell
 
 验证：正式前端 TypeScript / Vite 构建通过，Vitest 5 项通过；旧 Demo 构建通过。
 当时未完成浏览器画面的人工验收。早期本地数据回退已在后续目录整理时移除。
+"""
+
+
+STEP_14_1 = """
+Frontend Step 14.1 — Real Flower Gameplay Validation
+====================================================
+
+目标：在隔离数据目录中，以真实浏览器、Creation API、Ollama 与 ACE-Step 验收 Step 14。
+
+结果（2026-10-23）：固定随机序列实际创建并核验 small 占 1 格、large 占 9 格、田地
+边缘 large 自动降级 small、相邻占地冲突 large 自动降级 small；刷新后位置、大小和
+occupied_tiles 保持不变。浏览器实际提交记忆并播放音频；刷新后按 E 可查看对应原文与
+V1。生成 V2 后又切回 V1。已占中心格与非 SOIL 格均返回 400，且 Creation 数量不增加。
+
+修复：隔离 API 支持测试数据根目录、端口、确定性随机序列与空的 91 × 68 花园；Vite
+支持代理至测试 API；LLM 若返回空 key、texture、scene、primary_emotion，则回填当前
+Blueprint，其他无效字段仍被 Pydantic 拒绝。
+
+验证：前端 Vite 构建通过；Blueprint Editor 测试通过；Garden Planting / Demo Creation
+回归 24 passed。隔离测试目录已删除，正式 database/preview 未写入测试花朵。
+
+范围：没有新增玩法或美术。Step 14.1 已完成，下一步进入 Step 15 Terrain Visual Polish。
 """
 
 STEP_2 = """
@@ -286,6 +308,17 @@ Frontend Step 9 — Walking Animation
 
 验证：前端 Vitest 43 项通过，新增起步帧、9fps 推帧、循环、停止与转向相位测试；
 TypeScript / Vite 构建通过。
+
+2026-10-21 侧向肤色稳定性修正：最终版本回到原始 player-walk-sheet.png 的动作像素，
+不再重新生成或镜像姿势。player-walk-sheet-v6.png 仅在 Left / Right 六帧的脸、耳、
+手和腿皮肤蒙版内统一色调与明度；动作、帧顺序、轮廓、衣服、头发、鞋、透明通道、
+尺寸和脚底基线与原版完全一致。像素校验确认透明通道变化为 0，皮肤蒙版外变化为 0。
+Front / Back、站立帧、9fps 与 120px/s 移动速度均未改变，旧精灵表保留作回退。
+
+同日停止姿势修正：Left / Right 的 idleColumn 不再复用双脚张开的走路姿势，改为
+从最初四视图素材精确裁取的侧面直立帧，双腿伸直、双脚并拢。两帧统一为 352px
+角色高和 y=376 脚底基线，并将肤色校准到当前侧向行走帧；六个走路帧的像素经校验
+完全未变。运行时素材更新为 player-walk-sheet-v7.png。
 """
 
 
@@ -384,8 +417,10 @@ Frontend Step 12 — Map Art Integration & Viewport Calibration
 视野与比例：
 - MAP_VIEW_ZOOM = 2.5。它让一块 3 × 2 的泥土田地成为画面主要内容，同时仍能看到
   周围道路和环境；摄像机根据缩放后的可见世界范围进行 clamp，边缘不会露出地图外部。
-- Player 保持 58px 可见高度、120px/s、四方向六帧动画与脚底 anchor。逻辑种植格保持
-  48px，因此人物为约 1.21 个逻辑格高。每块小田地约定为 3 × 2、共 6 个逻辑格；
+- Player 使用 30px 可见高度、120px/s、四方向六帧动画与脚底 anchor。逻辑种植格为
+  16px，因此人物为约 1.88 个
+  逻辑格高。每块
+  小田地约定为 3 × 2、共 6 个逻辑格；
   这些格不会显示为绿色线。
 - GardenRenderSpec 的动态花朵继续按原有后端坐标绘制在地图层之上；现有 E 键交互、
   Creation Overlay、花朵记忆与音乐版本流程没有改写。下一阶段才会给地图中每块田地
@@ -405,3 +440,461 @@ Frontend Step 12 — Map Art Integration & Viewport Calibration
 田地映射；这些留给 Step 13。
 """
 
+
+STEP_13 = """
+Frontend Step 13 — Grid Terrain Map Prototype
+=============================================
+
+目标：保留 Step 11–12 已完成的世界坐标、摄像机、人物比例与业务流程，将运行时地图
+从整张背景图片改为可逐格编辑的地形数据。musegarden-map.png 继续留在 assets 中作为
+布局参考，但不再参与运行时渲染。
+
+地形数据：
+- frontend/src/world/TerrainMap.ts 定义 1448 × 1086px 世界、16 × 16px 逻辑格，
+  使用 91 列 × 68 行覆盖完整世界；最右列与最下行由世界边界自然裁切。
+- 每格都具有 GRASS、PATH、WATER、SOIL、STRUCTURE 或 BRIDGE 之一，未涂色区域默认
+  为 GRASS。区域通过集中式矩形涂色描述，方便后续调整河道、道路、田地和建筑轮廓，
+  不为每个格子创建 React 组件。
+- 第一版布局按正式大地图的大致空间关系勾勒：左右与底部水域、入口及主路、四片土地、
+  两处建筑占位和四座桥梁。它是地图骨架，不代表最终美术和通行规则。
+
+渲染与兼容：
+- frontend/src/world/TerrainRenderer.ts 使用单个 Pixi Graphics 按世界坐标绘制纯色地形；
+  WorldScene 将地形层放在动态花园与 Player 下方，摄像机继续只变换世界容器。
+- GardenWorld 不再加载地图纹理，MapArt.ts 已移除；正式构建产物中不再包含
+  musegarden-map 图片依赖。MAP_VIEW_ZOOM 保持 2.5，逻辑格保持 16px，Player 可见高度
+  保持 30px，移动速度、四方向走路动画和脚底 anchor 均未修改。
+- 现有 GardenRenderSpec 花朵、脚底格高光、按 E 种下记忆、查看记忆、真实 Creation API、
+  音乐播放 / 修改 / 历史版本和所有 React Overlay 继续使用原有世界坐标与生命周期。
+
+验证：2026-10-21 正式 TypeScript / Vite 构建通过；Vitest 13 个测试文件、51 项测试
+全部通过。新增 TerrainMap 测试覆盖世界尺寸、91 × 68 全格分类、六种地形存在及关键
+区域采样；原 Camera、Player、Interaction、Creation 和 Overlay 测试继续通过。
+
+2026-10-21 真实浏览器验收：本地四项服务启动后进入 http://127.0.0.1:5182/，可看到
+由纯色格子组成的草地、土地和水域；按住方向键时人物动画与摄像机跟随正常，世界移动
+不会露出透明背景。人物保持 30px，视角保持 2.5 倍。站在可交互格时显示 [E] 种下记忆，
+按 E 能打开原“留下一段记忆”面板，取消后正常返回花园；验收过程中没有提交创作，
+没有写入后端数据。
+
+范围：本 Step 没有实现地形碰撞、稳定田地 / 种植格 ID、后端坐标重构、地图编辑器、
+正式纹理、树木、围栏或建筑细节。SOIL 当前只是地形分类，不会自动获得新的种植能力。
+下一步应先根据浏览器中的纯色地图确认河流、道路和田地轮廓，再进入 Planting Plot Mapping。
+"""
+
+
+GRID_BASED_MAP_LAYOUT_V1 = """
+Frontend Step — Grid-based Map Layout V1
+========================================
+
+目标：根据用户提供的最新“像素田园岛屿地图”参考图，重做 Step 13 的空间布局；继续使用
+16px 地形格和纯色 Pixi 渲染，不重新引入整张图片背景，不修改人物、镜头或后端创建流程。
+参考图保存为 frontend/src/assets/grid-map-layout-v1-reference.png，只用于布局对照。
+
+布局：
+- 世界继续为 1448 × 1086px、91 × 68 个地形格，MAP_VIEW_ZOOM 保持 2.5，Player
+  可见高度保持 30px。
+- 左侧河流使用多段网格区域形成弯曲河岸，水域沿南侧延伸，并在右下方回弯；中央横向
+  主路、中央广场、南北主路、建筑支路和农田支路形成连续路网。
+- 北侧保留一处主要建筑和一处辅助建筑占位。左入口、南入口和右侧水域连接处使用
+  BRIDGE，桥面与道路对齐。
+- 四块农田位于西北、东北、西南、东南。每块田由 3 列 × 2 行共六个独立 SOIL 槽组成，
+  每个槽占 4 × 4 个 16px 地形格，相邻槽之间保留一个地形格间隔，画面中可清楚辨认。
+
+种植兼容：
+- GardenMapLayout.ts 为 24 个可见槽位建立稳定的现有后端 grid_x / grid_y 绑定。新种植
+  仍提交原 API 所需坐标；前端只负责将绑定坐标映射到田块世界位置，不修改数据库结构。
+- WorldScene 在传给既有 Flower Renderer 前创建展示副本，把已绑定花朵的 pixel_x /
+  pixel_y 移到对应槽中心；原始 GardenRenderSpec、花朵 ID、种植记录和音乐关系保持不变。
+- 不属于这 24 个映射格的既有历史花朵继续使用原 pixel 坐标，避免隐藏或删除旧数据。
+  InteractionManager 使用玩家脚底进入槽位矩形判断目标，Creation Overlay 与详情流程不变。
+
+碰撞：
+- Player 新增可选的脚底通行判断，位移按 X / Y 轴分别尝试，因此撞到水域或建筑时停止，
+  斜向移动仍可沿边缘滑行。WATER 与 STRUCTURE 不可通行；GRASS、PATH、BRIDGE 和 SOIL
+  可通行。角色速度、四方向动画、脚底 anchor 和世界边界限制均未改变。
+
+地图总览：
+- /map-overview 直接读取与游戏相同的 TerrainMap 生成完整 SVG 总览，并显示六类地形图例，
+  不再维护一份容易过期的手写预览图。
+
+验证：2026-10-21 TypeScript / Vite 正式构建通过；Vitest 14 个测试文件、55 项测试
+全部通过。新增与更新的测试覆盖四块 3×2 农田、24 个后端槽位绑定、花朵映射与历史
+坐标回退、水域 / 建筑阻挡、可通行地形和沿障碍滑动。
+
+真实浏览器验收：/map-overview 能一次显示完整岛屿、弯河、南侧水岸、连续道路、两处建筑、
+三座桥和四块六槽农田。游戏视角中人物出生于西北田块的有效种植槽，六个槽位清晰；
+持续向左移动会停在河岸，不会进入水域；站在槽内显示 [E] 种下记忆，按 E 可打开原有
+“留下一段记忆”面板，取消后恢复花园。验收未提交创作，未写入后端数据。
+
+范围：没有新增树木、围栏、建筑细节、寻路、地图编辑器或新游戏机制；Music Companion、
+AI Engine、Music Engine、Flower Engine 和后端 Creation / Planting 数据结构未修改。
+"""
+
+
+STEP_13_1 = """
+Frontend Step 13.1 — Map Connectivity Fix
+=========================================
+
+目标：在 Grid-based Map Layout V1 基础上只修复道路连通、水域连续性、桥梁落点和农田
+入口，不改变 1448 × 1086px 世界、16px 地形格、2.5 倍镜头、30px Player 或业务系统。
+
+修改：
+- 删除左上方停在主建筑侧墙的孤立横向道路和没有目标的西北竖向支路。主建筑改由正南方
+  的连续道路进入；辅助建筑继续通过中央道路的东北支路连接。
+- 左侧河流的下段向南延伸，与底部水域直接相连，清除了左下方的草地断层。南侧水域现在
+  从第 60 行延伸至地图底部，形成连续约 8 个逻辑格深的水带。
+- 左桥保持横向，完整跨越西侧竖河；桥西增加短入口道路，桥东直接接入中央主路。南桥
+  调整为从南岸第 58 行纵向延伸至地图底部，主体覆盖南侧水域并连接中央南北道路。
+  原右侧临时桥及其无用途支路已移除，当前地图只保留左入口桥和南入口桥。
+- 西北、东北田地使用下方中央入口；西南、东南田地的上下入口均对准中间列。南部两段
+  道路合并为一条连续横路，消除了中间一格断点。全部 24 个 SOIL 种植槽保持完整，
+  GardenMapLayout 的后端 grid_x / grid_y 绑定未改变。
+- 四块田地的所有入口道路统一扩为 4 个逻辑格，与田地中间种植槽逐格对齐。左桥只保留
+  水面上的 9 格桥身并保持 4 格道路宽度；南桥只保留南侧 8 格深水面上的桥身，宽度由
+  7 格收窄为与南北道路一致的 4 格。两岸陆地区域继续使用 PATH，不再用 BRIDGE 覆盖；
+  左桥西岸入口上缘补回 1 个 GRASS 河岸格，避免陆地道路的角落直接贴住开放水面。
+
+验证：2026-10-21 TypeScript / Vite 正式构建通过；Vitest 14 个测试文件、60 项测试
+全部通过。新增测试验证西河至南水域连续、南侧水深为 8 格、左右岸 / 南岸桥头连接、
+桥梁主体只处于水面、桥宽与道路一致、田地入口为 4 格，以及全部 PATH / BRIDGE 格
+属于同一个道路连通分量。
+
+真实浏览器验收：/map-overview 显示左河连续汇入南侧水域，西桥横跨河流，南桥纵向穿过
+加宽水域；主建筑、辅助建筑、四块农田和两个地图入口均由同一路网连接。四块农田仍为
+3 × 2 六槽布局，入口位于边缘中部，没有道路覆盖 SOIL。未修改或提交任何花园数据。
+
+范围：没有增加树木、围栏、花丛、建筑细节、地图编辑器或新游戏机制；人物、摄像机、
+Creation、Flower Memory、音乐版本和后端接口均未改动。
+"""
+
+
+CURRENT_MAP_DOCUMENTATION = """
+当前地图的完整规格集中记录在 docs/architecture/Frontend_map_v1.md，包括：
+- 1448 × 1086 世界、16px 地形格与 4 × 4 泥土区域的三层坐标；
+- 六种地形及通行规则；
+- 四块田地的起点、西北与东南连续泥土区及 444 个逐格种植位置；
+- 1 × 1 小花、以中心格定位的 3 × 3 大花、降级和占地冲突规则；
+- 当前河流、路网、两座桥、4 格田地入口及浏览器入口；
+- Pixi 渲染层、摄像机、脚底碰撞与既有业务流程的关系；
+- 2026-10-21 的 63 项前端测试、92 项相关 Python 测试和后续未实现范围。
+
+后续修改地图时，应同时更新 TerrainMap.ts、相关测试、本进度文件和 Frontend_map_v1.md，
+避免运行时地图、全局总览与文字记录出现不同版本。
+"""
+
+
+STEP_14 = """
+Frontend Step 14 — Per-Tile Planting with 1×1 / 3×3 Flowers
+===========================================================
+
+目标：把每个 16 × 16px SOIL 地形格变成独立种植单位。小花占 1 × 1；大花以玩家选中格
+为中心占 3 × 3。大花放不下时降级为小花，任何花朵都不能与已有占地重叠。
+
+实现：
+- application/garden_planting.py 集中定义四块田地的 SOIL 判断、大小花 footprint、旧坐标
+  兼容、冲突检查和降级规则。CreationService 在耗时生成前调用一次可注入随机源，50%
+  尝试 large、50% small；最终结果写入种植记录，刷新与渲染不再随机。
+- PlantingRecord 与 GardenRenderFlower 新增 placement_schema_version、flower_size 和
+  occupied_tiles。terrain-v1 记录保存中心 x/y 以及 1 或 9 个占地格；旧记录缺少字段时
+  默认 legacy + small。GardenService 在保存前再次检查边界和占地冲突。
+- Preview Garden 从旧 16 × 10 坐标扩为 91 × 68 地形坐标。前端每个 SOIL 格都创建独立
+  Plant Spot。西北与东南田地内部的五条草缝均改为 SOIL，另外两块仍保留六块分区，
+  四块田地共 444 个种植格；大花 9 格共享同一个 Flower 交互目标。
+- 小花与大花使用稳定的不同渲染比例。摄像机视口固定为 840 × 552，不会因后端网格扩大
+  而缩小画面；人物、2.5 倍镜头、地图和现有 Creation / Memory / Music UI 保持不变。
+- 按用户要求清空 database/preview/planting_records.json 中 8 条旧种植记录。旧记忆、音乐、
+  FinalCreation 和 FlowerArtifact 资产保留，删除范围没有扩大。
+
+测试：2026-10-21 TypeScript / Vite 构建通过；Vitest 14 个测试文件、63 项通过；
+Application、Backend 与 Flower Engine 相关 Python 测试 92 项通过。Step 14 测试覆盖 1×1、
+3×3、边缘 / 间隔 / 冲突降级、中心已占用、非 SOIL、九格同一记忆、随机注入、持久化和
+历史记录默认 small。整个 Python 仓库测试另有 19 个旧 AI 测试在收集阶段因本地模型网络
+和系统临时目录权限失败，本次相关测试没有断言失败。
+
+真实浏览器验收：重启 Garden API 后确认 garden 为 91 × 68、旧花数量为 0；正式页面保持
+原视野和人物比例，玩家位于 SOIL 单格时显示 [E] 种下记忆，移动到相邻格提示仍正确；
+Creation Overlay 可以打开、取消并恢复移动。验收没有提交真实 AI / ACE-Step 创建，所以
+尚未把“大花实际生成、边缘实际降级、刷新后保持”标为浏览器通过。
+
+后续布局微调：按用户要求把西北、东南田地六块土地之间的草缝全部改成 SOIL，两块田地
+分别成为 14 × 9 的连续大田；东北、西南仍保持六块分隔布局。前后端 SOIL 判断已同步，
+种植位置总数为 444。全局地图浏览器验收确认两块合并田地显示正确。
+
+西桥东侧桥头下方另补 1 × 3 的竖向 GRASS 河岸，使道路与水域之间具有清楚的绿色过渡。
+
+详细地图与占地规格见 docs/architecture/Frontend_map_v1.md。完成后没有开始地图美化。
+"""
+
+
+CREATION_RUNTIME_FIX_2026_10_23 = """
+运行修复 — 本地真实创作链路（2026-10-23）
+============================================
+
+问题：浏览器提交种花时曾收到 502。原因有两项：ACE-Step 的 HTTP 服务可以监听 8001，
+但音乐模型尚未初始化；同时本机 Ollama 的 OpenAI SDK 流式调用返回 502，直接访问其
+OpenAI 兼容 HTTP 接口则正常。
+
+修复：
+- scripts/Start-MuseGarden.ps1 在启动 Garden API 前检查 ACE-Step /health；若模型未加载，
+  自动调用 /v1/init 加载 acestep-v15-turbo，确认完成后才继续启动。
+- ai_engine/llm/client.py 改为以 requests 直接调用 127.0.0.1:11434/v1/chat/completions，
+  使用非流式完整响应，再维持原有 Blueprint 解析流程。
+
+验证：2026-10-23 从干净临时数据目录完成真实 AI 文本解析、ACE-Step 音频生成、Flower
+Engine 创建及 91 × 68 地形花园的种植。结果为 lily、large（3 × 3）、音频 artifact
+e944461b-95a3-4c3e-aa9e-73458c869a89。测试目录已删除，未向正式 database/preview
+写入测试花朵。启动脚本随后确认 Ollama、ACE-Step、ACE-Step 模型、Garden API 与前端均
+已就绪。
+"""
+
+
+STEP_15 = """
+Frontend Step 15 — Mini Map Overlay
+===================================
+
+目标：在花园场景内按 M 打开完整地图缩略图，显示玩家当前位置；再次按 M 或 Esc 关闭。
+
+实现：
+- 新增 ui/MiniMapOverlay.tsx，直接遍历 MUSE_GARDEN_TERRAIN 绘制 SVG 缩略图；没有第二份地图
+  数据，也没有路由跳转或重新创建 Pixi 世界。
+- GardenWorld 暴露玩家脚底的真实世界坐标。打开地图时 App 读取该坐标，以 worldWidth/worldHeight
+  相同坐标系标记玩家位置；地图打开时玩家已暂停，因此不会发生过期位置或位置漂移。
+- App 使用一个受控的全局快捷键：非输入控件、且没有 Creation / Flower Detail 面板时，M 切换地图；
+  Esc 仅在地图已打开时关闭。地图与既有面板互斥，复用 GardenWorldView 的 paused 输入锁，并在
+  暂停时清除 held keys，关闭后不会让角色突然移动。
+
+验证：新增 App 测试覆盖 M 打开/关闭、Esc 关闭、位置标记和 Creation / 输入框互斥；该文件 12 项
+测试通过。Vite 构建通过。完整 Vitest 在当前受限运行时中有若干既有套件因临时 Vite 缓存文件
+ENOENT 无法加载；单文件测试与 TypeScript 构建均正常。用户已在真实浏览器手动确认功能通过。
+
+范围：未修改世界尺寸、地形、种植、摄像机、人物或后端。Step 15 完成；下一步为 Step 16 地图美化。
+"""
+
+STEP_16_0 = """
+Frontend Step 16.0 — Mini Meadow Asset Download & Inspection
+=============================================================
+
+完成：2026-10-25 从官方 itch.io 页面下载 Mini Meadow — 16×16 Pixel-Art Tileset，保存原始 ZIP
+与完整解压内容到 assets/third-party/mini-meadow/。ZIP 为 65,675 bytes，SHA-256 为
+608ba6d099c4f8aedf363afc7e483f996c9c4c03d1672dfa4f0b43739d0a5674；解压前检查了目录项，
+未发现路径穿越或根路径。manifest.json 的 75 项均存在。
+
+检查：独立地形和装饰均为 16×16 RGBA PNG；ground.png 为 144×16，三个静态边缘图集为
+128×16，四个水岸帧图集各为 128×16，props.png 为 160×16。包含 grass_a/grass_b、dirt、
+water_1..4、草地与水/土/沙/石的八方向过渡、以及 10 个透明装饰。包内已有 atlas.png 与
+scene.png 预览。
+
+适配结论：grass_a/grass_b 适合未来 GRASS 原型；dirt 可以随后评估用于 PATH / SOIL；四帧
+water 与草水岸边适合后续 WATER；没有桥梁或建筑瓦片，BRIDGE / STRUCTURE 保持当前表现。
+保留原 README、manifest 和 CC0-1.0 许可说明；完整索引在 assets/third-party/mini-meadow/
+ASSET_INDEX.md。
+
+范围：没有修改任何游戏代码、地图、渲染、碰撞、种植或后端。等待确认后才开始 Step 16.1。
+"""
+
+STEP_16_1 = """
+Frontend Step 16.1 — Grass Tileset Prototype
+==============================================
+
+目标：只把 GRASS 的纯色格换为 Mini Meadow 像素瓦片，保持 TerrainMap、坐标、碰撞、种植、
+摄像机、人物与其他五种地形不变。
+
+实现：
+- 保留第三方原始素材在 assets/third-party/mini-meadow/，仅复制实际运行需要的 grass_a.png 和
+  grass_b.png 到 frontend/src/assets/third-party/mini-meadow/。
+- 新增 TerrainTextures.ts：Pixi Assets 以 nearest filtering 异步加载两张 16×16 纹理一次，并由
+  GardenWorld 缓存后交给 WorldScene；刷新花园复用同一纹理，不重复加载。
+- TerrainRenderer 保持 PATH / WATER / SOIL / STRUCTURE / BRIDGE 的既有 Graphics 颜色。只为每个
+  GRASS 格建立 Mini Meadow Sprite；grass_a 为基础，grass_b 由稳定坐标 hash 以约 1/11 概率选择。
+  同一坐标刷新后始终使用同一变体，避免逐帧随机与棋盘式交替。
+- TerrainColors.ts 让全局地图和 Mini Map 继续使用现有简化地形颜色；缩略图没有复制新的瓦片渲染。
+
+验证：TerrainRenderer 与 GardenWorld 聚焦测试 6 项通过；App / Mini Map 测试 12 项通过；Vite
+TypeScript 正式构建通过。完整 Vitest 在当前受限运行时仍可能因临时 Vite 缓存 ENOENT 影响部分
+既有套件加载，聚焦测试本身没有失败。正常本地服务已确认在 5182 就绪；当前打开的 5183 为旧的
+隔离前端且测试 API 已停止，不能用于本次浏览器画面验收。
+
+范围：没有改动 SOIL、PATH、WATER、BRIDGE、STRUCTURE、地图布局、业务数据或后端。Step 16.1
+完成后暂停，等待用户在 http://127.0.0.1:5182/ 检查草地效果。
+"""
+
+STEP_16_1_1 = """
+Frontend Step 16.1.1 — Grass Variety Refinement
+================================================
+
+目标：减轻大面积草地的重复感，只调整 GRASS 的基础瓦片搭配。
+
+检查结果：Mini Meadow 的连续草地底纹只有 `grass_a` 与 `grass_b` 两张；两张均已在 Step 16.1 接入。
+此前 `grass_b` 的稳定坐标 hash 覆盖率约为 1/11，且两张瓦片色调接近，因此远看仍较单调。透明 `tuft`
+草丛素材存在于原始素材包，但未用于最终运行时画面。
+
+实现：将 `grass_b` 的确定性覆盖率调整为约 1/5；每个坐标刷新后仍选择相同底纹。未加载、复制或渲染
+`tuft`，也未使用其他装饰素材。TerrainMap、碰撞、种植、人物、道路、田地、水域、桥梁、地图布局和
+Mini Map 均未改动。
+
+验证：TerrainRenderer 聚焦测试 3 项通过，覆盖稳定选择、第二张底纹 15% 至 25% 的覆盖范围，以及非
+GRASS 地形仍留在原有颜色层。此前本 Step 的 Vite TypeScript 构建通过；本次最后一次构建被
+`FlowerDetailOverlay.tsx` 向 `MusicCompanionCard` 传递已不存在的 `onUseSuggestion` 参数阻断，
+这是同时进行的音乐详情代码不匹配，与草地修改无关，尚未在本 Step 扩大修复范围。
+
+浏览器：正常本地服务 5182 已加载两种基础草地纹理；本次未改变用户打开的花朵详情面板状态。当前打开的
+5183 为旧隔离前端，不能作为正式画面验收地址。
+
+范围：只改善 GRASS。当前素材包仅有两种连续草地底纹；若后续仍需更丰富的草地，需要另选或制作更多
+基础草地变体。
+"""
+
+STEP_16_1_2 = """
+Frontend Step 16.1.2 — Grass Asset Review
+===========================================
+
+目标：在不修改正式游戏画面的前提下，检查 Mini Meadow 草地素材的实际像素与重复效果，为后续基础底纹选择提供依据。
+
+检查结果：manifest 与 PNG 内容确认仅有 `grass_a.png`、`grass_b.png` 两张连续、无透明的 16×16 草地底纹。
+两者共用相近的三档绿色，并均包含固定的小斑点；所有 `edge_grass_*` 都包含另一种地形和边界线，不能作为
+连续草地。`tuft`、灌木、花、蘑菇、石头等均为透明装饰，不适合基础地面，且未接入运行时。
+
+交付：新增 development/asset-previews/mini-meadow-grass-review.svg，包含 grass_a 单独重复、grass_b 单独重复、
+以及当前稳定 80% A / 20% B 的三组 32×18 格对比。配套说明在同目录 mini-meadow-grass-review.md。预览采用内嵌
+原始 PNG 与最近邻显示，不会修改原素材。
+
+结论：素材包没有更安静的第三种连续草地；当前重复感来自两张 16×16 底纹本身，并非遗漏了未接入的基础素材。
+下一步需要由人工在预览中选择保留混合、只使用其中较安静的一张，或另选兼容的连续草地素材；本 Step 未实施任何
+运行时草地修改。
+
+范围：没有修改 TerrainRenderer、TerrainTextures、TerrainMap、运行时素材、地形、碰撞、人物、种植、镜头、
+Mini Map、后端或地图布局。
+"""
+
+STEP_16_2 = """
+Frontend Step 16.2 — Path & Soil Visual Foundation
+===================================================
+
+目标：只为 PATH 接入像素泥土纹理，同时保持 SOIL 的深棕色种植区域，以建立道路与可种植土地之间清楚的视觉区分。
+
+素材检查：Mini Meadow 的 `dirt.png` 是 16×16、不透明、可无缝重复的基础地面瓦片。它适合作为道路连续底纹；
+同一瓦片若同时用于 SOIL，会降低道路和种植区域的辨识度，因此 SOIL 暂不贴图，继续使用现有深棕色纯色。
+
+实现：将实际运行需要的 dirt.png 复制到 frontend/src/assets/third-party/mini-meadow/。TerrainTextures 以 nearest
+filtering 一次加载该纹理；TerrainRenderer 只为每个 PATH 格创建 `mini-meadow-path-tiles` Sprite。每个 PATH
+格固定使用同一张无缝 dirt 瓦片，位置、尺寸、TerrainMap、地图布局和地形分类均未改变。GRASS 继续使用既有
+两张瓦片混合；SOIL、WATER、BRIDGE、STRUCTURE 仍保留原渲染。
+
+验证：TerrainRenderer 聚焦测试 3 项通过，覆盖草地稳定变体、草地比例、PATH Sprite 数量以及其他地形仍在颜色层；
+TerrainMap 测试 9 项通过。Vite TypeScript 正式构建通过。合并运行两个 Vitest 文件时，本机受限运行时仍偶发
+临时 Vite 缓存 ENOENT；单文件运行均通过。Chrome 正式服务 5182 浏览器验收确认：道路为像素泥土纹理、SOIL
+仍为深棕色种植区，Player、花朵与当前格提示正常显示。
+
+范围：未改动 TerrainMap、道路布局、碰撞、玩家、镜头、种植规则、花朵、Creation、Flower Detail、Music
+Revision、Mini Map、后端、草地、水域、桥梁或建筑。Step 16.2 完成后暂停，等待人工检查整体地图效果。
+"""
+
+STEP_16_3 = """
+Frontend Step 16.3 — Water & Shoreline Foundation
+==================================================
+
+目标：为 WATER 接入静态水面与草水河岸过渡，不改变 TerrainMap、河道、桥梁、角色或任何游戏业务。
+
+素材：使用 Mini Meadow 的 `water_1.png` 作为唯一静态、可无缝重复的水面帧；不混用 water_2..4，因此本 Step
+没有水面动画或相邻格棋盘感。曾检查 frame 1 的草水边缘 PNG，但其直边与转角自带的黑线在连续拼接时粗细不一致，
+故不作为运行时河岸素材；原始第三方文件仍完整保存在素材归档中。
+
+实现：TerrainTextures 以 nearest filtering 一次加载水面，并继续由 GardenWorld 缓存。TerrainRenderer 新增独立
+water 与 water-bank 容器。每个 WATER 格先绘制 water_1；再对每条直接相邻的 WATER→非 WATER、非 BRIDGE 边界
+绘制一条固定 1 个世界像素、颜色 `#1e1c28` 的深色线。直边和转角因此采用同一个线宽；WATER→BRIDGE 不画岸线，
+保证桥面不会被压线。这只改变视觉绘制，不改变任一地形分类或通行规则。
+
+层级：grass 基础层 → water 基础层 → 原有 Graphics（SOIL / STRUCTURE / BRIDGE）→ path → water-bank 线条。
+桥梁邻接水面不生成岸线；动态 Player 与花朵仍由 WorldScene 的实体层绘制。
+
+验证：TerrainRenderer 聚焦测试 4 项通过，覆盖水→草、水→PATH/SOIL、桥面相邻水格不画线，以及 grass / water /
+path / water-bank 分层数量；TerrainMap 测试 9 项通过；Vite TypeScript 正式构建通过。Chrome 正式服务 5182
+浏览器验收：河道直边和阶梯状转角均显示同样的细岸线，水面连续，路径与 SOIL 没有被岸线遮盖。未实现动画、
+泡沫、粒子或任何装饰。
+
+范围：未修改 TerrainMap、世界尺寸、格子、摄像机、人物、移动、碰撞、田地、种植规则、Creation、Flower Detail、
+Music Revision、Mini Map、后端、草地、道路、桥梁或建筑。Step 16.3 完成后停止，等待人工检查。
+"""
+
+STEP_16_4 = """
+Frontend Step 16.4 — Bridge & Structure Visual Foundation
+==========================================================
+
+目标：只改善既有 BRIDGE 与 STRUCTURE 的基础像素美术；不改 TerrainMap、坐标、碰撞、种植、人物、相机或业务流程。
+
+实现：TerrainColors 集中定义克制的木材和屋顶色板。TerrainRenderer 在静态地形初始化时识别 BRIDGE 与 STRUCTURE
+的四向连通区域，新增 `pixel-wood-bridge-details` 与 `pixel-structure-details` 两个 Graphics 层；不会在每帧重复
+分析或创建图形。
+
+桥梁：每个现有 BRIDGE 格保持原位置，绘制木棕桥面；只在连通桥段的外边界画 1px 深色轮廓，内部格不画粗边。
+规则矩形桥段依据长边自动判定方向：横桥绘制纵向木板线，竖桥绘制横向木板线，并只加一条轻微高光。桥面绝不延伸
+到 WATER / PATH / GRASS，且 WATER→BRIDGE 不生成 Step 16.3 的岸线。
+
+建筑：按真实 STRUCTURE 连通区域逐格覆盖屋顶色，外边界使用统一 1px 轮廓；矩形区域添加浅色屋顶上沿、稀疏横向
+屋顶线及位于底边中央的小入口。所有细节都被限制在 STRUCTURE 格内，因而不会覆盖道路、田地或水域。
+
+层级：grass → water → 原有基础 Graphics（SOIL / STRUCTURE / BRIDGE）→ path → bridge details → structure details
+→ water-bank outlines → 动态实体。Mini Map 与 /map-overview 继续使用其简化色块，不承担运行时细节绘制。
+
+验证：修改前的组合 Vitest 命令曾在受限环境遇到临时 SSR 缓存 ENOENT；修改后分别执行的 TerrainRenderer 测试
+5 项通过、TerrainMap 测试 9 项通过，`npm run build` 通过（只有既有的 bundle 大小提示）。Chrome 5182 浏览器
+验收确认建筑轮廓、顶面与屋顶线清楚显示，且人物移动未受影响；桥梁方向、外边界和不穿越桥面的岸线由针对性单元
+测试覆盖。本次没有修改地图布局或任何业务数据。
+
+范围：未修改 TerrainMap、世界尺寸、格子、摄像机、移动、碰撞、田地、种植、Creation、Flower Detail、Music
+Revision、Mini Map、后端、AI / Music / Flower Engine，亦未新增外部素材或依赖。Step 16.4 完成后停止，等待人工检查。
+"""
+
+STEP_16_5 = """
+Frontend Step 16.5 — Terrain Visual Harmony & Polish
+=====================================================
+
+目标：对已完成的 GRASS、PATH、SOIL、WATER、BRIDGE 与 STRUCTURE 进行整体检查，只修复可确认的视觉问题，
+不为制造改动而添加装饰或重构渲染器。
+
+检查结果：正式 5182 服务的实际游戏视角、`/map-overview` 全图、草地与道路、田地入口、建筑与道路、河道边线及
+桥梁布局均已检查。地形层级维持 grass → water → 基础图形 → path → bridge details → structure details →
+water-bank outlines → 动态实体；未发现透明缝隙、岸线压桥、道路遮田地或建筑越出 STRUCTURE 格的问题。
+
+唯一确认调整：实际视角中建筑屋顶的原冷灰基调较重，因此仅在 TerrainColors 的集中色板中把 `structureRoof`、
+`structureRoofLight` 与 `structureRoofShade` 调为稍暖的自然棕灰；轮廓、屋顶线、入口、地图格和所有层级均保持
+不变。草地的稳定双瓦片混合、PATH dirt、SOIL 深棕、water_1、统一 1px 岸线和木桥色板均已保留。
+
+验证：分别执行 TerrainRenderer 5 项、TerrainMap 9 项、GardenWorld 4 项、Player 7 项、interactions 6 项及
+App 12 项测试，合计 43 项通过；`npm run build` 通过（仅保留已有 bundle 大小提示）。Chrome 5182 已检查正式
+游戏视角与完整地图总览；没有提交 Creation、生成音乐或更改任何花园数据。M 键、Creation、Flower Detail 与音乐
+版本流程本轮未产生代码改动，相关 App / interaction 回归测试通过。
+
+范围：未修改 TerrainMap、世界尺寸、格子、地图布局、碰撞、移动、相机、花朵占地、Creation、Flower Detail、
+Music Revision、Mini Map、后端或任一 Engine；未新增素材、依赖、树木、草丛、石头、粒子与水面动画。Step 16.5
+完成后停止，等待人工检查是否进入环境装饰设计。
+"""
+
+STEP_16_6_1 = """
+Frontend Step 16.6.1 — Environmental Decoration Layout Preview (Shelved)
+=======================================================================
+
+状态：未实施，不属于当前版本功能。
+
+曾生成仅供讨论的开发期装饰预览，但人工评审认为灌木、岩石等道具会使当前地图显得幼稚，故明确不接入正式游戏。
+相关预览保留在 `development/asset-previews/` 作为以后重新设计环境美术时的参考；它们不被运行时代码加载，也不应
+被计入功能完成、浏览器验收或后续路线图。
+
+若未来重新启动环境美术，应先重新选择更成熟、统一的视觉方向，再单独决定树木素材、装饰密度与碰撞规则。
+"""
+
+PHASE_MILESTONE = """
+MuseGarden 阶段性里程碑 — 核心功能开发暂时收尾
+====================================================
+
+当前版本已完成：Pixi Garden World 与 React Overlay、四方向角色及移动动画、世界边界与摄像机、基于脚底位置的
+交互、Creation Overlay、真实 Creation API、种花与花朵持久化、花朵记忆详情、音频播放、音乐修改与版本选择、
+Grid Terrain Map、1×1 / 3×3 花朵占地、Mini Map，以及 Step 16.1–16.5 的基础地形美术与整体协调。
+
+当前阶段不再主动扩展核心业务功能。后续工作仅限于 Bug 修复、真实体验验收、性能或稳定性维护，以及用户明确
+提出的按需美化。未实施事项包括：环境装饰、树木与碰撞、动态水面、NPC、背包、搜索 / RAG 与其他新玩法。
+
+验证边界：前端构建、各模块自动化测试和若干正式浏览器流程已在各 Step 分别执行；完整端到端 AI / ACE-Step
+生成仍依赖本机 Ollama、ACE-Step 与模型就绪状态，不能把自动化测试等同于每次机器环境中的人工生成验收。
+"""

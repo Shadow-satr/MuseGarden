@@ -1,12 +1,12 @@
-"""MuseGarden 跨模块当前进度快照（更新至 2026-10-19）。
+"""MuseGarden 跨模块当前进度快照（更新至 2026-10-27）。
 
 本文件记录实际接入状态，不替代各 Engine 的逐 Step 历史：
 AIEngine_progress.py、MusicEngine_progress.py、FlowerEngine_progress.py。
 """
 
-CURRENT_STATUS = "本地端到端链路已接通；正式 Frontend 已完成 Step 1–9，包括花园探索、真实创作、花朵记忆、音乐修改与版本选择、四方向走路动画。AI 语义记忆检索尚未接入。"
+CURRENT_STATUS = "核心功能开发阶段暂时收尾，后续进入按需美化与维护：正式 Frontend 已完成 Garden World、玩家探索、Creation 与真实种花、花朵记忆 / 音乐版本、Grid Map V1、Mini Map 及 Step 16.1–16.5 基础地形美术。环境装饰规划已搁置，不属于当前版本且未接入运行时。完整 AI 语义记忆检索尚未接入；真实 ACE-Step 生成仍依赖本机服务就绪。"
 
-CURRENT_LAYOUT = "旧网页 Demo 与开发缓存位于 development/；正式 frontend/ 不再包含静态预览花园数据。当前本地 API 仍使用 database/preview/，该数据没有迁移。项目根目录的 启动 MuseGarden.bat 会统一准备 Ollama、ACE-Step、Garden API 与前端。"
+CURRENT_LAYOUT = "旧网页 Demo 与开发缓存位于 development/；正式 frontend/ 使用 1448 × 1086 世界和 16px 逻辑地形格。当前地图规格见 docs/architecture/Frontend_map_v1.md。本地 API 仍使用 database/preview/，该数据没有迁移。项目根目录的 启动 MuseGarden.bat 会统一准备 Ollama、ACE-Step、Garden API 与前端，并等待 ACE-Step 音乐模型完成初始化。"
 
 
 COMPLETED = """
@@ -28,10 +28,16 @@ FlowerArtifact → GardenService 保存 PlantingRecord → React/Pixi 显示花�
 - 选地高亮会显示角色当前所在网格；世界边界允许角色脚底进入最外圈格子，同时角色
   图像不会越出画面。
 - HTTP 传输的 63 位 variation_seed 为十进制字符串，避免 JavaScript 整数精度丢失。
+- 运行时地图已改为 TerrainMap 数据驱动的纯色格子地图，不再依赖整张背景图片。当前有
+  四块 3 × 2 田地；西北与东南田地合并内部泥土，当前共 444 个基础种植格、连续路网、西桥和南桥；
+  水域与建筑不可通行。小花占 1 × 1，大花占 3 × 3，尺寸与占地随种植记录持久化。
+  摄像机缩放为 2.5，人物高度为 30 世界像素。完整地图规格见 Frontend_map_v1.md。GRASS 现以 Mini Meadow 的 grass_a / grass_b 两种 16×16 瓦片绘制，第二张约占 20%，不使用草丛装饰。
 
-验证基线：正式前端 Vitest 43 项及 TypeScript/Vite 构建通过；Creation API 与
+验证基线：正式前端 Vitest 63 项及 TypeScript/Vite 构建通过；Application、Backend 与
+Flower Engine 相关 Python 测试 89 项通过。Creation API 与
 CreationService、Music Engine 的相关 Python 回归测试 38 项通过。真实浏览器已验收：
-创建花朵、回访记忆、V1 → V2 → V3 真实生成、版本切换和走路动画。
+创建花朵、回访记忆、V1 → V2 → V3 真实生成、版本切换、走路动画、地图总览、摄像机、
+地形碰撞及 Step 13.1 的道路 / 河流 / 桥梁连通修正。
 """
 
 
@@ -56,6 +62,10 @@ KNOWN_INTEGRATION_GAPS = """
 三、工程边界
 - 本地多个 JSON Store 没有跨文件事务；生成中途失败需要后续补偿、幂等与并发控制。
 - 当前页面是本地 Demo，不包含账户、多用户、任务队列或完整产品 UI。
+
+四、当前前端构建状态
+- Vite TypeScript 正式构建已恢复通过。TerrainRenderer 聚焦测试 3 项与 TerrainMap 测试 9 项通过。
+- 在当前受限运行环境中，合并运行多个 Vitest 文件偶发临时 Vite 缓存 ENOENT；单文件测试均通过。
 """
 
 

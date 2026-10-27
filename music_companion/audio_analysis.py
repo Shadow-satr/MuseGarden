@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import argparse
+from io import BytesIO
 import json
-import tempfile
 from pathlib import Path
 from uuid import UUID
 
@@ -40,12 +40,33 @@ def analyze_wav(
     except Exception as error:
         raise ValueError(f"无法解码音频文件：{path}") from error
 
+    return _build_analysis_result(
+        librosa,
+        numpy,
+        samples,
+        sample_rate,
+        source_name=path.name,
+        audio_artifact_id=audio_artifact_id,
+        segment_count=segment_count,
+    )
+
+
+def _build_analysis_result(
+    librosa,
+    numpy,
+    samples,
+    sample_rate: int,
+    *,
+    source_name: str,
+    audio_artifact_id: UUID | str | None,
+    segment_count: int,
+) -> AudioAnalysisResult:
     if samples.size == 0 or sample_rate <= 0:
-        raise ValueError(f"音频文件没有可分析的样本：{path}")
+        raise ValueError(f"音频没有可分析的样本：{source_name}")
     channels = 1 if samples.ndim == 1 else int(samples.shape[0])
     mono_samples = samples if samples.ndim == 1 else numpy.mean(samples, axis=0)
     if mono_samples.size == 0:
-        raise ValueError(f"音频文件没有可分析的样本：{path}")
+        raise ValueError(f"音频没有可分析的样本：{source_name}")
 
     duration_seconds = float(mono_samples.size / sample_rate)
     is_silent = float(numpy.max(numpy.abs(mono_samples))) <= _SILENCE_PEAK_THRESHOLD
@@ -61,7 +82,10 @@ def analyze_wav(
         hop_length=hop_length,
     )[0]
     onset_envelope = librosa.onset.onset_strength(
-        y=mono_samples, sr=sample_rate, hop_length=hop_length
+        y=mono_samples,
+        sr=sample_rate,
+        hop_length=hop_length,
+        n_fft=frame_length,
     )
     onset_count = 0 if is_silent else int(
         len(librosa.onset.onset_detect(onset_envelope=onset_envelope, sr=sample_rate))
@@ -74,7 +98,7 @@ def analyze_wav(
     return AudioAnalysisResult(
         analysis_version=ANALYSIS_VERSION,
         audio_artifact_id=artifact_id,
-        source_name=path.name,
+        source_name=source_name,
         duration_seconds=duration_seconds,
         sample_rate_hz=int(sample_rate),
         channels=channels,
@@ -102,16 +126,22 @@ def analyze_audio_artifact(
     if artifact is None:
         raise ValueError(f"音频资产不存在：{audio_artifact_id}")
     content = audio_store.load_audio(artifact.id)
-    suffix = Path(artifact.file_path).suffix or ".wav"
-    with tempfile.NamedTemporaryFile(suffix=suffix) as temporary_file:
-        temporary_file.write(content)
-        temporary_file.flush()
-        result = analyze_wav(
-            temporary_file.name,
-            audio_artifact_id=artifact.id,
-            segment_count=segment_count,
-        )
-    return result.model_copy(update={"source_name": Path(artifact.file_path).name})
+    if segment_count < 1:
+        raise ValueError("segment_count 必须至少为 1")
+    librosa, numpy = _load_analysis_dependencies()
+    try:
+        samples, sample_rate = librosa.load(BytesIO(content), sr=None, mono=False)
+    except Exception as error:
+        raise ValueError(f"无法解码音频资产：{artifact.id}") from error
+    return _build_analysis_result(
+        librosa,
+        numpy,
+        samples,
+        sample_rate,
+        source_name=Path(artifact.file_path).name,
+        audio_artifact_id=artifact.id,
+        segment_count=segment_count,
+    )
 
 
 def _load_analysis_dependencies():
@@ -128,7 +158,7 @@ def _load_analysis_dependencies():
 def _frame_length(sample_count: int) -> int:
     """短音频采用不超过样本量的 2 的幂窗口，避免 librosa 自动填充警告。"""
     target = min(2048, sample_count)
-    return max(2, 1 << (target.bit_length() - 1))
+    return max(1, 1 << (target.bit_length() - 1))
 
 
 def _statistics(numpy, values) -> FeatureStatistics:
@@ -144,7 +174,7 @@ def _statistics(numpy, values) -> FeatureStatistics:
 
 def _estimate_tempo(librosa, onset_envelope, sample_rate: int, hop_length: int) -> float | None:
     try:
-        estimate = librosa.beat.tempo(
+        estimate = librosa.feature.tempo(
             onset_envelope=onset_envelope, sr=sample_rate, hop_length=hop_length
         )
         tempo = float(estimate[0]) if len(estimate) else 0.0
@@ -166,7 +196,12 @@ def _analyze_segments(librosa, numpy, samples, sample_rate: int, segment_count: 
         centroid = librosa.feature.spectral_centroid(
             y=segment, sr=sample_rate, n_fft=frame_length, hop_length=hop_length
         )[0]
-        onset = librosa.onset.onset_strength(y=segment, sr=sample_rate, hop_length=hop_length)
+        onset = librosa.onset.onset_strength(
+            y=segment,
+            sr=sample_rate,
+            hop_length=hop_length,
+            n_fft=frame_length,
+        )
         segments.append(AudioTimeSegment(
             start_seconds=float(start / sample_rate),
             end_seconds=float(end / sample_rate),

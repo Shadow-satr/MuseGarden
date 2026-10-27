@@ -71,6 +71,21 @@ describe("Player movement", () => {
     expect(Math.floor(player.container.y / 48)).toBe(9);
   });
 
+  it("blocks forbidden terrain and slides along its edge", () => {
+    const player = new Player(
+      768,
+      480,
+      48,
+      animations(),
+      { x: 384, y: 240 },
+      (x) => x < 390,
+    );
+    player.setMovement(1, 1);
+    player.update(100);
+    expect(player.container.x).toBe(384);
+    expect(player.container.y).toBeGreaterThan(240);
+  });
+
   it("starts each direction on its neutral walk frame and idles when stopped", () => {
     const frames = animations();
     for (const [x, y, facing, start] of [

@@ -39,3 +39,12 @@ class RegenerateMusicRequest(BaseModel):
 
 class SelectMusicVersionRequest(BaseModel):
     audio_artifact_id: UUID
+
+
+class RenameMusicVersionRequest(BaseModel):
+    audio_artifact_id: UUID
+    display_name: str = Field(min_length=1, max_length=60)
+
+
+class MusicSuggestionRequest(BaseModel):
+    seen_titles: tuple[str, ...] = Field(default=(), max_length=12)

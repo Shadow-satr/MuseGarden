@@ -3,16 +3,22 @@
 import json
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 import re
 from uuid import UUID
 
 from pydantic import ValidationError
 
 from application.creation_service import CreationService
+from music_companion.interpretation import ANALYSIS_VERSION, interpret_audio_artifact
+from music_companion.result_store import MusicCompanionResultStore
+from music_companion.revision_suggestions import generate_revision_suggestions
 from backend.app.schemas.garden import (
     CreateMemoryRequest,
     RegenerateMusicRequest,
+    RenameMusicVersionRequest,
     SelectMusicVersionRequest,
+    MusicSuggestionRequest,
 )
 from backend.app.services.garden_interaction import GardenInteractionService
 
@@ -25,7 +31,12 @@ _MUSIC_PATH = re.compile(r"^/api/creations/(?P<creation_id>[0-9a-fA-F-]+)/music$
 _MUSIC_SELECTION_PATH = re.compile(
     r"^/api/creations/(?P<creation_id>[0-9a-fA-F-]+)/music-selection$"
 )
+_MUSIC_RENAME_PATH = re.compile(
+    r"^/api/creations/(?P<creation_id>[0-9a-fA-F-]+)/music-version-name$"
+)
 _AUDIO_PATH = re.compile(r"^/api/audio/(?P<audio_id>[0-9a-fA-F-]+)$")
+_MUSIC_COMPANION_PATH = re.compile(r"^/api/music-companion/(?P<audio_id>[0-9a-fA-F-]+)$")
+_MUSIC_SUGGESTIONS_PATH = re.compile(r"^/api/music-companion/(?P<audio_id>[0-9a-fA-F-]+)/suggestions$")
 
 
 def _json_safe_payload(value: object) -> object:
@@ -53,6 +64,18 @@ def create_handler(
                     HTTPStatus.OK,
                     {"creations": creation_service.list_creations(preview_garden_id)},
                 )
+                return
+            companion_match = _MUSIC_COMPANION_PATH.fullmatch(self.path)
+            if companion_match is not None and creation_service is not None:
+                try:
+                    result = MusicCompanionResultStore(creation_service.audio_store.data_root).get(
+                        UUID(companion_match.group("audio_id"))
+                    )
+                    if result is None or result.analysis_version != ANALYSIS_VERSION:
+                        raise ValueError("这首音乐还没有生成解读")
+                    self._send_json(HTTPStatus.OK, result.model_dump(mode="json"))
+                except ValueError as error:
+                    self._send_error(HTTPStatus.NOT_FOUND, str(error))
                 return
             audio_match = _AUDIO_PATH.fullmatch(self.path)
             if audio_match is not None and creation_service is not None:
@@ -82,6 +105,41 @@ def create_handler(
                 self._send_error(HTTPStatus.SERVICE_UNAVAILABLE, str(error))
 
         def do_POST(self) -> None:  # noqa: N802
+            suggestions_match = _MUSIC_SUGGESTIONS_PATH.fullmatch(self.path)
+            if suggestions_match is not None and creation_service is not None:
+                try:
+                    request = MusicSuggestionRequest.model_validate_json(self._read_body())
+                    result = MusicCompanionResultStore(creation_service.audio_store.data_root).get(
+                        UUID(suggestions_match.group("audio_id"))
+                    )
+                    if result is None or result.analysis_version != ANALYSIS_VERSION:
+                        raise ValueError("请先生成当前版本的音乐解读")
+                    suggestions = generate_revision_suggestions(result, seen_titles=request.seen_titles)
+                    self._send_json(HTTPStatus.OK, suggestions.model_dump(mode="json"))
+                except (ValidationError, ValueError) as error:
+                    self._send_error(HTTPStatus.BAD_REQUEST, str(error))
+                except Exception as error:
+                    self._send_error(HTTPStatus.SERVICE_UNAVAILABLE, str(error))
+                return
+            companion_match = _MUSIC_COMPANION_PATH.fullmatch(self.path)
+            if companion_match is not None and creation_service is not None:
+                try:
+                    audio_id = UUID(companion_match.group("audio_id"))
+                    store = MusicCompanionResultStore(creation_service.audio_store.data_root)
+                    result = store.get(audio_id)
+                    if result is None or result.analysis_version != ANALYSIS_VERSION:
+                        result = interpret_audio_artifact(
+                            creation_service.audio_store.data_root,
+                            audio_id,
+                            model_cache=Path("models/music-clap"),
+                        )
+                        store.save(result)
+                    self._send_json(HTTPStatus.OK, result.model_dump(mode="json"))
+                except (ValueError, ValidationError) as error:
+                    self._send_error(HTTPStatus.BAD_REQUEST, str(error))
+                except Exception as error:
+                    self._send_error(HTTPStatus.SERVICE_UNAVAILABLE, str(error))
+                return
             if self.path == "/api/creations" and creation_service is not None:
                 try:
                     request = CreateMemoryRequest.model_validate_json(self._read_body())
@@ -117,6 +175,21 @@ def create_handler(
                     result = creation_service.select_music_version(
                         UUID(selection_match.group("creation_id")),
                         request.audio_artifact_id,
+                    )
+                    self._send_json(HTTPStatus.OK, result)
+                except (ValidationError, ValueError) as error:
+                    self._send_error(HTTPStatus.BAD_REQUEST, str(error))
+                except Exception as error:
+                    self._send_error(HTTPStatus.SERVICE_UNAVAILABLE, str(error))
+                return
+            rename_match = _MUSIC_RENAME_PATH.fullmatch(self.path)
+            if rename_match is not None and creation_service is not None:
+                try:
+                    request = RenameMusicVersionRequest.model_validate_json(self._read_body())
+                    result = creation_service.rename_music_version(
+                        UUID(rename_match.group("creation_id")),
+                        request.audio_artifact_id,
+                        request.display_name,
                     )
                     self._send_json(HTTPStatus.OK, result)
                 except (ValidationError, ValueError) as error:

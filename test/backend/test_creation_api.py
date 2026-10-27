@@ -69,3 +69,20 @@ def test_music_selection_route_uses_stable_creation_and_audio_ids():
     assert status == HTTPStatus.OK
     creation.select_music_version.assert_called_once_with(creation_id, audio_id)
     assert result["music"]["artifact_id"] == str(audio_id)
+
+
+def test_music_version_name_route_uses_stable_creation_and_audio_ids():
+    creation_id = uuid4()
+    audio_id = uuid4()
+    creation = SimpleNamespace(rename_music_version=Mock(return_value={
+        "creation_id": str(creation_id),
+        "music": {"artifact_id": str(audio_id), "version": 1, "url": f"/api/audio/{audio_id}"},
+    }))
+    handler_type = create_handler(None, uuid4(), creation)
+
+    status, _ = post(handler_type, f"/api/creations/{creation_id}/music-version-name", {
+        "audio_artifact_id": str(audio_id), "display_name": "晨光版",
+    })
+
+    assert status == HTTPStatus.OK
+    creation.rename_music_version.assert_called_once_with(creation_id, audio_id, "晨光版")
