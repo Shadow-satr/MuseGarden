@@ -6,18 +6,19 @@ import type { Interactable } from "../world/interactions";
 interface GardenWorldViewProps {
   onTargetChange: (target: Interactable | null) => void;
   onInteract: (target: Interactable) => void;
+  onDeleteFlower: (target: Extract<Interactable, { kind: "flower" }>) => void;
   paused: boolean;
   onReady?: (world: GardenWorld | null) => void;
 }
 
-export function GardenWorldView({ onTargetChange, onInteract, paused, onReady }: GardenWorldViewProps) {
+export function GardenWorldView({ onTargetChange, onInteract, onDeleteFlower, paused, onReady }: GardenWorldViewProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<GardenWorld | null>(null);
   const [status, setStatus] = useState("正在进入花园…");
 
   useEffect(() => {
     if (!hostRef.current) return;
-    const world = new GardenWorld(hostRef.current, onTargetChange, onInteract);
+    const world = new GardenWorld(hostRef.current, onTargetChange, onInteract, onDeleteFlower);
     worldRef.current = world;
     let active = true;
     void world.init().then((result) => {
@@ -37,7 +38,7 @@ export function GardenWorldView({ onTargetChange, onInteract, paused, onReady }:
       worldRef.current = null;
       onReady?.(null);
     };
-  }, [onTargetChange, onInteract, onReady]);
+  }, [onTargetChange, onInteract, onDeleteFlower, onReady]);
 
   useLayoutEffect(() => {
     worldRef.current?.setInputPaused(paused);

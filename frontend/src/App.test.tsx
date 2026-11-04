@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const world = vi.hoisted(() => ({
   init: vi.fn(), destroy: vi.fn(), setInputPaused: vi.fn(), refreshGarden: vi.fn(),
   playerWorldPosition: { x: 724, y: 543 },
   interact: null as null | ((target: unknown) => void),
+  deleteFlower: null as null | ((target: unknown) => void),
 }));
 vi.mock("./world/GardenWorld", () => ({
   GardenWorld: class {
@@ -16,21 +17,23 @@ vi.mock("./world/GardenWorld", () => ({
     refreshGarden = world.refreshGarden;
     currentGardenId = "garden-1";
     get playerWorldPosition() { return world.playerWorldPosition; }
-    constructor(_host: HTMLElement, _onTargetChange: unknown, onInteract: (target: unknown) => void) {
+    constructor(_host: HTMLElement, _onTargetChange: unknown, onInteract: (target: unknown) => void, onDeleteFlower: (target: unknown) => void) {
       world.interact = onInteract;
+      world.deleteFlower = onDeleteFlower;
     }
   },
 }));
 vi.mock("./api/creation", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./api/creation")>()),
-  createMemory: vi.fn(), loadFlowerMemory: vi.fn(), reviseFlowerMusic: vi.fn(), selectFlowerMusicVersion: vi.fn(),
+  createMemory: vi.fn(), loadFlowerMemory: vi.fn(), removeFlowerFromGarden: vi.fn(), reviseFlowerMusic: vi.fn(), selectFlowerMusicVersion: vi.fn(),
 }));
 
 import App from "./App";
-import { createMemory, CreationResponseError, loadFlowerMemory, reviseFlowerMusic, selectFlowerMusicVersion } from "./api/creation";
+import { createMemory, CreationResponseError, loadFlowerMemory, removeFlowerFromGarden, reviseFlowerMusic, selectFlowerMusicVersion } from "./api/creation";
 
 const createMock = vi.mocked(createMemory);
 const loadFlowerMemoryMock = vi.mocked(loadFlowerMemory);
+const removeFlowerMock = vi.mocked(removeFlowerFromGarden);
 const reviseFlowerMusicMock = vi.mocked(reviseFlowerMusic);
 const selectFlowerMusicVersionMock = vi.mocked(selectFlowerMusicVersion);
 const result = {
@@ -55,14 +58,18 @@ const flowerTarget = {
 };
 
 describe("Garden World shell", () => {
+  beforeEach(() => window.localStorage.setItem("musegarden-onboarding-complete", "true"));
+
   afterEach(() => {
     cleanup();
     world.init.mockReset();
     world.destroy.mockReset();
     world.setInputPaused.mockReset();
     world.interact = null;
+    world.deleteFlower = null;
     createMock.mockReset();
     loadFlowerMemoryMock.mockReset();
+    removeFlowerMock.mockReset();
     reviseFlowerMusicMock.mockReset();
     selectFlowerMusicVersionMock.mockReset();
     world.refreshGarden.mockReset();
@@ -74,11 +81,24 @@ describe("Garden World shell", () => {
     const view = render(<App />);
     expect(screen.getByTestId("garden-world")).toBeTruthy();
     await waitFor(() => expect(screen.getByText("花园已就绪")).toBeTruthy());
-    await user.click(screen.getByRole("button", { name: "☰" }));
-    expect(screen.getByRole("button", { name: "UI Layer ✓" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "打开新手指引" }));
+    expect(screen.getByRole("dialog", { name: "从一段记忆开始" })).toBeTruthy();
     expect(world.init).toHaveBeenCalledTimes(1);
     view.unmount();
     expect(world.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows the onboarding once for a first-time visitor and can reopen it later", async () => {
+    window.localStorage.removeItem("musegarden-onboarding-complete");
+    world.init.mockResolvedValue({ source: "live" });
+    const user = userEvent.setup();
+    render(<App />);
+    expect(screen.getByRole("dialog", { name: "从一段记忆开始" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "开始探索" }));
+    expect(screen.queryByRole("dialog", { name: "从一段记忆开始" })).toBeNull();
+    expect(window.localStorage.getItem("musegarden-onboarding-complete")).toBe("true");
+    await user.click(screen.getByRole("button", { name: "打开新手指引" }));
+    expect(screen.getByRole("dialog", { name: "从一段记忆开始" })).toBeTruthy();
   });
 
   it("reports an error when the garden API is unavailable", async () => {
@@ -158,6 +178,22 @@ describe("Garden World shell", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(world.setInputPaused).toHaveBeenLastCalledWith(false);
     expect(world.refreshGarden).not.toHaveBeenCalled();
+  });
+
+  it("removes only the nearby flower, then refreshes the garden so its soil is free again", async () => {
+    world.init.mockResolvedValue({ source: "live" });
+    removeFlowerMock.mockResolvedValue(undefined);
+    world.refreshGarden.mockResolvedValue(undefined);
+    render(<App />);
+    await waitFor(() => expect(screen.getByText("花园已就绪")).toBeTruthy());
+
+    await act(async () => {
+      world.deleteFlower?.(flowerTarget);
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(removeFlowerMock).toHaveBeenCalledWith("garden-1", "planting-1", expect.any(AbortSignal)));
+    await waitFor(() => expect(world.refreshGarden).toHaveBeenCalledWith(undefined, expect.any(AbortSignal)));
+    await waitFor(() => expect(screen.getByText("花朵已移除，这块地可以重新种下记忆。")).toBeTruthy());
   });
 
   it("keeps memories from two flowers separate", async () => {

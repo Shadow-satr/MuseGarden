@@ -1,0 +1,30 @@
+
+> musegarden-frontend@0.1.0 build
+> tsc -b && vite build
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 780 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                    0.45 kB │ gzip:   0.29 kB
+dist/assets/player-walk-sheet-v7-6JDp7Fez.png  2,843.17 kB
+dist/assets/index-B5TZt_dd.css                    11.25 kB │ gzip:   2.99 kB
+dist/assets/Filter-UaE0kIe-.js                     0.90 kB │ gzip:   0.47 kB
+dist/assets/CanvasPool-BGTNntTu.js                 1.89 kB │ gzip:   0.83 kB
+dist/assets/canvasUtils-lX2EkbaK.js                5.71 kB │ gzip:   1.80 kB
+dist/assets/getTexelRangeRects-DLCOPa2J.js        11.40 kB │ gzip:   2.99 kB
+dist/assets/webworkerAll-CIW3RHOm.js              15.50 kB │ gzip:   4.89 kB
+dist/assets/CanvasRenderer-BT83q2Cd.js            17.92 kB │ gzip:   6.01 kB
+dist/assets/BitmapFont-BtVufYdo.js                33.82 kB │ gzip:  11.44 kB
+dist/assets/browserAll-CEIDopaw.js                44.00 kB │ gzip:  11.43 kB
+dist/assets/RenderTargetSystem-BvtRq6nf.js        53.95 kB │ gzip:  14.77 kB
+dist/assets/WebGPURenderer-ClKuvT-B.js            55.91 kB │ gzip:  16.00 kB
+dist/assets/WebGLRenderer-Cp1-zvTr.js             73.67 kB │ gzip:  20.16 kB
+dist/assets/index-B1EElufH.js                    550.69 kB │ gzip: 173.72 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 5.97s

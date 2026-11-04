@@ -164,6 +164,25 @@ export async function loadFlowerMemory(
   return exact;
 }
 
+/** Removes a flower from the garden and frees its planting tiles. Memory and music stay archived. */
+export async function removeFlowerFromGarden(
+  gardenId: string,
+  plantingRecordId: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  const response = await fetch(
+    `/api/gardens/${encodeURIComponent(gardenId)}/plantings/${encodeURIComponent(plantingRecordId)}`,
+    { method: "DELETE", signal },
+  );
+  const payload = await readJson(response);
+  if (!response.ok) {
+    const message = payload && typeof payload === "object" && "error" in payload
+      ? String(payload.error)
+      : `HTTP ${response.status}`;
+    throw new Error(message);
+  }
+}
+
 async function postFlowerMemory(path: string, body: object, signal?: AbortSignal): Promise<FlowerMemory> {
   const response = await fetch(path, {
     method: "POST",

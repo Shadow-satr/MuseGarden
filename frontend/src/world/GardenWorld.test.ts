@@ -222,4 +222,29 @@ describe("GardenWorld keyboard integration", () => {
     expect(world.currentGardenId).toBe("garden-1");
     world.destroy();
   });
+
+  it("uses Delete or Backspace only for a flower currently under the player's feet", async () => {
+    const onDeleteFlower = vi.fn();
+    const world = new GardenWorld(document.createElement("div"), vi.fn(), vi.fn(), onDeleteFlower);
+    world.loadGarden = vi.fn().mockResolvedValue({ spec, source: "live" });
+    await world.init();
+    const flower = {
+      planting_record_id: "planting-1", flower_artifact_id: "flower-1",
+      grid_x: 28, grid_y: 24, pixel_x: 456, pixel_y: 392,
+      placement_schema_version: "terrain-v1", flower_size: "small",
+      occupied_tiles: [[28, 24]],
+    };
+    vi.mocked(loadGarden).mockResolvedValue({ spec: { ...spec, flowers: [flower] } as never, source: "live" });
+    await world.refreshGarden();
+
+    const deletionKey = new KeyboardEvent("keydown", { key: "Delete", cancelable: true });
+    window.dispatchEvent(deletionKey);
+    expect(deletionKey.defaultPrevented).toBe(true);
+    expect(onDeleteFlower).toHaveBeenCalledWith(expect.objectContaining({ id: "flower:planting-1" }));
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Delete", repeat: true }));
+    expect(onDeleteFlower).toHaveBeenCalledTimes(1);
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Backspace" }));
+    expect(onDeleteFlower).toHaveBeenCalledTimes(2);
+    world.destroy();
+  });
 });

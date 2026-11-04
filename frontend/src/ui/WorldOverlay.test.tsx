@@ -12,14 +12,15 @@ describe("WorldOverlay interaction hint", () => {
   afterEach(cleanup);
 
   it("follows the current target and hides when none is nearby", () => {
-    const view = render(<WorldOverlay target={null} interactionMessage="" />);
+    const view = render(<WorldOverlay target={null} interactionMessage="" onOpenGuide={() => undefined} />);
     expect(screen.queryByText("种下记忆")).toBeNull();
-    view.rerender(<WorldOverlay target={spot} interactionMessage="" />);
+    view.rerender(<WorldOverlay target={spot} interactionMessage="" onOpenGuide={() => undefined} />);
     expect(screen.getByText(/种下记忆/).textContent).toContain("E");
-    view.rerender(<WorldOverlay target={flower} interactionMessage="已选择花朵" />);
+    view.rerender(<WorldOverlay target={flower} interactionMessage="已选择花朵" onOpenGuide={() => undefined} />);
     expect(screen.getByText(/查看记忆/)).toBeTruthy();
+    expect(screen.getByText(/删除花朵/).textContent).toContain("Delete");
     expect(screen.getByText("已选择花朵")).toBeTruthy();
-    view.rerender(<WorldOverlay target={null} interactionMessage="" />);
+    view.rerender(<WorldOverlay target={null} interactionMessage="" onOpenGuide={() => undefined} />);
     expect(screen.queryByText(/查看记忆/)).toBeNull();
   });
 });

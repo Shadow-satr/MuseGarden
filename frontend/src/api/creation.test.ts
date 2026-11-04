@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createMemory, loadFlowerMemory, reviseFlowerMusic, selectFlowerMusicVersion } from "./creation";
+import { createMemory, loadFlowerMemory, removeFlowerFromGarden, reviseFlowerMusic, selectFlowerMusicVersion } from "./creation";
 
 const result = {
   creation_id: "creation-1", text: "今天很开心",
@@ -97,5 +97,15 @@ describe("creation API", () => {
     expect(fetchMock).toHaveBeenNthCalledWith(2, "/api/creations/creation-1/music-selection", expect.objectContaining({
       method: "POST", body: JSON.stringify({ audio_artifact_id: "audio-1" }),
     }));
+  });
+
+  it("removes a flower through its stable garden planting relation", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ garden: {} }) });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(removeFlowerFromGarden("garden-1", "planting-1")).resolves.toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledWith("/api/gardens/garden-1/plantings/planting-1", {
+      method: "DELETE", signal: undefined,
+    });
   });
 });

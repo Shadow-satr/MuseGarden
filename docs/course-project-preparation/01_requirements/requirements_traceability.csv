@@ -1,0 +1,17 @@
+﻿需求编号,需求,来源,优先级,验收标准,实现代码,测试线索,用例ID,状态
+FR-001,地图与移动,现有代码反推，待用户确认,高,用户通过方向键或 WASD 移动，地形和世界边界限制移动,frontend/src/world/GardenWorld.ts,frontend/src/world/GardenWorld.test.ts,TC-F01,已实现；自动化通过；人工未复测
+FR-002,输入记忆,现有代码反推，待用户确认,高,空地交互打开输入框，去除空白，前端限制 500 字；空白不可提交,frontend/src/ui/CreationOverlay.tsx,frontend/src/App.test.tsx,TC-F02,已实现；前端测试通过
+FR-003,创作记忆,现有代码反推，待用户确认,高,POST 请求包含 garden_id、text、x、y；成功返回 201 和创作结果；非法输入返回 400,backend/app/api/garden_preview.py,test/backend/test_creation_api.py,TC-P01; TC-M01,服务层一次真实生成通过；浏览器端到端未验收
+FR-004,种植冲突,现有代码反推，待用户确认,高,非 SOIL 或已占中心拒绝；大花占地不符合时退为小花,application/garden_planting.py,test/application/test_garden_planting.py,TC-P02,自动化通过
+FR-005,花朵详情与播放,现有代码反推，待用户确认,高,显示对应记忆并播放音频资产,frontend/src/ui/FlowerDetailOverlay.tsx,frontend/src/ui/FlowerDetailOverlay.test.tsx,TC-F03,前端测试通过；真实音频本次未验收
+FR-006,修改音乐,现有代码反推，待用户确认,高,基于修改文字产生新版蓝图及音频，不重种花,application/creation_service.py,test/music_engine/2/test_music_version_service.py,TC-P03; TC-M04,版本服务局部测试通过；真实修改未验收
+FR-007,选择旧版本,现有代码反推，待用户确认,中,按 creation_id 和 audio_artifact_id 选择已有音频,backend/app/api/garden_preview.py,test/backend/test_creation_api.py,TC-P04,路由测试使用替身
+FR-008,音频分析,现有代码反推，待用户确认,中,有效 WAV 生成声学结果；无效路径和不可解码数据报错,music_companion/audio_analysis.py,test/music_companion/1/test_audio_analysis.py,TC-P05,自动化通过；部分测试使用虚拟音频
+FR-009,音乐解读,现有代码反推，待用户确认,中,用户主动请求时生成或读取缓存；语义得分不可视为事实证明,music_companion/interpretation.py,test/music_companion/3/test_interpretation.py,TC-P06,模块测试通过；真实模型未复测
+FR-010,本地恢复,现有代码反推，待用户确认,高,重启后从 JSON 恢复保存记录及关联数据,flower_engine/garden_store.py,test/flower_engine,TC-P07; TC-M05,模型兼容自动化通过；跨重启恢复未测
+FR-011,删除种植,现有代码反推，待用户确认,中,指定 garden_id 与 planting_id 挖除并返回刷新后的花园,application/creation_service.py,test/application/test_garden_planting.py,TC-M06,代码已实现；此用例未单独执行
+NFR-001,输入和错误处理,现有代码反推，待用户确认,高,空白/格式不合法被拒；依路由返回 400、404 或 503,backend/app/api/garden_preview.py,test/backend/test_creation_api.py,TC-M02,部分已测；异常场景需扩大
+NFR-002,可恢复与一致性,现有代码反推，待用户确认,高,单文件保存尝试临时文件替换；跨文件不保证事务,application/creation_service.py,test/backend/test_creation_api.py,TC-M07,部分实现；中途失败恢复待验证
+NFR-003,性能,现有代码反推，待用户确认,中,记录环境、输入和响应时间；目标阈值尚未确定,application/garden_planting.py,04_testing/test_logs/planting-benchmark.json,TC-B01,种植函数微基准已测；整机响应未测
+NFR-004,隐私与权限,现有代码反推，待用户确认,中,本地数据不纳入版本库；服务默认仅监听回环地址,scripts/run_garden_preview_api.py,.gitignore,TC-M08,代码与配置已查；不等于安全测试
+NFR-005,可用性,现有代码反推，待用户确认,中,用户可理解提示、完成主流程；无量化达标标准,frontend/src/App.tsx,待真实用户测试,TC-M09,待真实体验者验证

@@ -4,7 +4,7 @@
 AIEngine_progress.py、MusicEngine_progress.py、FlowerEngine_progress.py。
 """
 
-CURRENT_STATUS = "核心功能开发阶段暂时收尾，后续进入按需美化与维护：正式 Frontend 已完成 Garden World、玩家探索、Creation 与真实种花、花朵记忆 / 音乐版本、Grid Map V1、Mini Map 及 Step 16.1–16.5 基础地形美术。环境装饰规划已搁置，不属于当前版本且未接入运行时。完整 AI 语义记忆检索尚未接入；真实 ACE-Step 生成仍依赖本机服务就绪。"
+CURRENT_STATUS = "核心功能开发阶段收尾，后续进入按需美化与维护：正式 Frontend 已完成 Garden World、玩家探索、Creation 与真实种花、花朵记忆 / 音乐版本、花朵移除、首次使用引导、Grid Map V1、Mini Map 及 Step 16.1–16.5 基础地形美术。环境装饰规划已搁置，不属于当前版本且未接入运行时。完整 AI 语义记忆检索尚未接入；真实 ACE-Step 生成仍依赖本机服务就绪。"
 
 CURRENT_LAYOUT = "旧网页 Demo 与开发缓存位于 development/；正式 frontend/ 使用 1448 × 1086 世界和 16px 逻辑地形格。当前地图规格见 docs/architecture/Frontend_map_v1.md。本地 API 仍使用 database/preview/，该数据没有迁移。项目根目录的 启动 MuseGarden.bat 会统一准备 Ollama、ACE-Step、Garden API 与前端，并等待 ACE-Step 音乐模型完成初始化。"
 
@@ -25,6 +25,8 @@ FlowerArtifact → GardenService 保存 PlantingRecord → React/Pixi 显示花�
 - 用户提出音乐修改要求时，现有 AI Engine 编辑最新 MusicBlueprint，并由 ACE-Step
   生成 V2、V3 等真实音频。所有版本保留，前端可选择并播放历史版本；当前播放版本
   与最新版本分别持久化，花、原始文字与种植位置不变。
+- 玩家在花朵占地范围内按 Delete 或 Backspace 可移除花朵并释放种植格；对应原始记忆、音乐与版本仍保留在本地归档中。
+- 首次访问会显示操作引导；关闭后记录在浏览器 localStorage，用户仍可通过“新手指引”重新打开。
 - 选地高亮会显示角色当前所在网格；世界边界允许角色脚底进入最外圈格子，同时角色
   图像不会越出画面。
 - HTTP 传输的 63 位 variation_seed 为十进制字符串，避免 JavaScript 整数精度丢失。
@@ -33,9 +35,8 @@ FlowerArtifact → GardenService 保存 PlantingRecord → React/Pixi 显示花�
   水域与建筑不可通行。小花占 1 × 1，大花占 3 × 3，尺寸与占地随种植记录持久化。
   摄像机缩放为 2.5，人物高度为 30 世界像素。完整地图规格见 Frontend_map_v1.md。GRASS 现以 Mini Meadow 的 grass_a / grass_b 两种 16×16 瓦片绘制，第二张约占 20%，不使用草丛装饰。
 
-验证基线：正式前端 Vitest 63 项及 TypeScript/Vite 构建通过；Application、Backend 与
-Flower Engine 相关 Python 测试 89 项通过。Creation API 与
-CreationService、Music Engine 的相关 Python 回归测试 38 项通过。真实浏览器已验收：
+最新验证（2026-11-04）：正式前端 Vitest 15 个测试文件、75 项通过，TypeScript/Vite 构建通过；
+Flower Engine、Application 种植与 Creation API 核心 Python 回归合计 95 项通过。真实浏览器已验收：
 创建花朵、回访记忆、V1 → V2 → V3 真实生成、版本切换、走路动画、地图总览、摄像机、
 地形碰撞及 Step 13.1 的道路 / 河流 / 桥梁连通修正。
 """

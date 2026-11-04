@@ -1,0 +1,172 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0 -- <USER_PROFILE>\Desktop\MuseGarden\.venv\Scripts\python.exe
+cachedir: development\test_artifacts\.pytest_cache
+rootdir: <USER_PROFILE>\Desktop\MuseGarden
+configfile: pytest.ini
+plugins: anyio-4.15.1, platformdirs-4.13.5
+collecting ... collected 134 items
+
+test/application/test_garden_planting.py::test_small_flower_occupies_only_selected_center PASSED [  0%]
+test/application/test_garden_planting.py::test_large_flower_uses_selected_center_and_three_by_three_footprint PASSED [  1%]
+test/application/test_garden_planting.py::test_large_flower_downgrades_at_field_edge_gap_or_nonsoil_neighbor[center0] PASSED [  2%]
+test/application/test_garden_planting.py::test_large_flower_downgrades_at_field_edge_gap_or_nonsoil_neighbor[center1] PASSED [  2%]
+test/application/test_garden_planting.py::test_large_flower_downgrades_at_field_edge_gap_or_nonsoil_neighbor[center2] PASSED [  3%]
+test/application/test_garden_planting.py::test_merged_fields_turn_former_gaps_into_plantable_soil[center0] PASSED [  4%]
+test/application/test_garden_planting.py::test_merged_fields_turn_former_gaps_into_plantable_soil[center1] PASSED [  5%]
+test/application/test_garden_planting.py::test_merged_fields_turn_former_gaps_into_plantable_soil[center2] PASSED [  5%]
+test/application/test_garden_planting.py::test_large_flower_downgrades_when_neighboring_tile_is_occupied PASSED [  6%]
+test/application/test_garden_planting.py::test_occupied_center_rejects_planting_instead_of_downgrading PASSED [  7%]
+test/application/test_garden_planting.py::test_historical_record_without_size_fields_defaults_to_small PASSED [  8%]
+test/backend/test_creation_api.py::test_formal_creation_route_uses_schema_and_returns_creation_result PASSED [  8%]
+test/backend/test_creation_api.py::test_temporary_draft_route_is_removed PASSED [  9%]
+test/backend/test_creation_api.py::test_music_selection_route_uses_stable_creation_and_audio_ids PASSED [ 10%]
+test/backend/test_creation_api.py::test_music_version_name_route_uses_stable_creation_and_audio_ids PASSED [ 11%]
+test/flower_engine/2/test_flower_artifact.py::test_create_artifact_has_complete_serializable_snapshot PASSED [ 11%]
+test/flower_engine/2/test_flower_artifact.py::test_artifact_is_independent_snapshot_and_does_not_modify_inputs PASSED [ 12%]
+test/flower_engine/2/test_flower_artifact.py::test_same_inputs_keep_visual_content_but_each_generation_has_identity PASSED [ 13%]
+test/flower_engine/2/test_flower_artifact.py::test_factory_and_schema_reject_inconsistent_inputs PASSED [ 14%]
+test/flower_engine/2/test_flower_artifact.py::test_store_round_trip_list_and_duplicate_protection PASSED [ 14%]
+test/flower_engine/2/test_flower_artifact.py::test_store_rejects_corrupt_data[{broken-JSON \u683c\u5f0f\u9519\u8bef] PASSED [ 15%]
+test/flower_engine/2/test_flower_artifact.py::test_store_rejects_corrupt_data[{"id": "wrong"}-JSON \u5217\u8868] PASSED [ 16%]
+test/flower_engine/2/test_flower_artifact.py::test_store_rejects_corrupt_data[[{"id": "wrong"}]-\u65e0\u6548\u6570\u636e] PASSED [ 17%]
+test/flower_engine/2/test_flower_artifact.py::test_step_6_remains_renderer_and_service_independent PASSED [ 17%]
+test/flower_engine/3/test_flower_lifecycle.py::test_create_for_final_creation_builds_and_persists_linked_flower PASSED [ 18%]
+test/flower_engine/3/test_flower_lifecycle.py::test_creation_must_exist_before_flower_is_saved PASSED [ 19%]
+test/flower_engine/3/test_flower_lifecycle.py::test_creation_queries_are_isolated_and_empty_is_valid PASSED [ 20%]
+test/flower_engine/3/test_flower_lifecycle.py::test_regenerate_same_seed_preserves_individual_and_history PASSED [ 20%]
+test/flower_engine/3/test_flower_lifecycle.py::test_regenerate_new_seed_creates_new_individual_without_overwriting PASSED [ 21%]
+test/flower_engine/3/test_flower_lifecycle.py::test_regenerate_rejects_missing_unlinked_or_dangling_artifacts PASSED [ 22%]
+test/flower_engine/3/test_flower_lifecycle.py::test_invalid_seed_never_creates_partial_history[-1] PASSED [ 23%]
+test/flower_engine/3/test_flower_lifecycle.py::test_invalid_seed_never_creates_partial_history[True] PASSED [ 23%]
+test/flower_engine/3/test_flower_lifecycle.py::test_invalid_seed_never_creates_partial_history[1.5] PASSED [ 24%]
+test/flower_engine/3/test_flower_lifecycle.py::test_invalid_seed_never_creates_partial_history[9223372036854775808] PASSED [ 25%]
+test/flower_engine/3/test_flower_lifecycle.py::test_lifecycle_has_no_llm_network_frontend_or_media_dependency PASSED [ 26%]
+test/flower_engine/3/test_garden_placement.py::test_garden_model_and_creation_are_complete_and_serializable PASSED [ 26%]
+test/flower_engine/3/test_garden_placement.py::test_garden_schema_rejects_invalid_dimensions_and_name[values0] PASSED [ 27%]
+test/flower_engine/3/test_garden_placement.py::test_garden_schema_rejects_invalid_dimensions_and_name[values1] PASSED [ 28%]
+test/flower_engine/3/test_garden_placement.py::test_garden_schema_rejects_invalid_dimensions_and_name[values2] PASSED [ 29%]
+test/flower_engine/3/test_garden_placement.py::test_garden_schema_rejects_invalid_dimensions_and_name[values3] PASSED [ 29%]
+test/flower_engine/3/test_garden_placement.py::test_garden_schema_rejects_invalid_dimensions_and_name[values4] PASSED [ 30%]
+test/flower_engine/3/test_garden_placement.py::test_flower_can_be_planted_and_layout_is_persisted PASSED [ 31%]
+test/flower_engine/3/test_garden_placement.py::test_invalid_coordinates_fail_without_partial_record[-1-0-ValueError] PASSED [ 32%]
+test/flower_engine/3/test_garden_placement.py::test_invalid_coordinates_fail_without_partial_record[4-0-ValueError] PASSED [ 32%]
+test/flower_engine/3/test_garden_placement.py::test_invalid_coordinates_fail_without_partial_record[0--1-ValueError] PASSED [ 33%]
+test/flower_engine/3/test_garden_placement.py::test_invalid_coordinates_fail_without_partial_record[0-3-ValueError] PASSED [ 34%]
+test/flower_engine/3/test_garden_placement.py::test_invalid_coordinates_fail_without_partial_record[True-0-TypeError] PASSED [ 35%]
+test/flower_engine/3/test_garden_placement.py::test_invalid_coordinates_fail_without_partial_record[0-1.5-TypeError] PASSED [ 35%]
+test/flower_engine/3/test_garden_placement.py::test_position_conflict_is_scoped_to_one_garden PASSED [ 36%]
+test/flower_engine/3/test_garden_placement.py::test_same_flower_may_be_displayed_at_multiple_positions PASSED [ 37%]
+test/flower_engine/3/test_garden_placement.py::test_missing_garden_or_flower_is_rejected PASSED [ 38%]
+test/flower_engine/3/test_garden_placement.py::test_planting_history_is_independent_from_flower_changes_or_removal PASSED [ 38%]
+test/flower_engine/3/test_garden_placement.py::test_store_rejects_duplicates_invalid_types_and_corrupt_json PASSED [ 39%]
+test/flower_engine/3/test_garden_placement.py::test_garden_domain_has_no_renderer_frontend_llm_or_network_dependency PASSED [ 40%]
+test/flower_engine/3/test_garden_render_spec.py::test_garden_domain_converts_to_complete_render_spec PASSED [ 41%]
+test/flower_engine/3/test_garden_render_spec.py::test_assets_scale_and_depth_are_deterministic_and_sorted PASSED [ 41%]
+test/flower_engine/3/test_garden_render_spec.py::test_adapter_does_not_modify_domain_or_artifact_objects PASSED [ 42%]
+test/flower_engine/3/test_garden_render_spec.py::test_adapter_rejects_missing_cross_garden_out_of_bounds_and_conflicts PASSED [ 43%]
+test/flower_engine/3/test_garden_render_spec.py::test_adapter_rejects_non_integer_cell_size[True] PASSED [ 44%]
+test/flower_engine/3/test_garden_render_spec.py::test_adapter_rejects_non_integer_cell_size[1.5] PASSED [ 44%]
+test/flower_engine/3/test_garden_render_spec.py::test_adapter_rejects_non_integer_cell_size[48] PASSED [ 45%]
+test/flower_engine/3/test_garden_render_spec.py::test_adapter_rejects_out_of_range_cell_size[23] PASSED [ 46%]
+test/flower_engine/3/test_garden_render_spec.py::test_adapter_rejects_out_of_range_cell_size[97] PASSED [ 47%]
+test/flower_engine/3/test_garden_render_spec.py::test_garden_render_schema_rejects_bad_dimensions_order_and_template PASSED [ 47%]
+test/flower_engine/3/test_garden_render_spec.py::test_adapter_has_no_storage_renderer_llm_or_network_dependency PASSED [ 48%]
+test/flower_engine/3/test_planting_interaction.py::test_preview_exposes_real_garden_and_available_artifacts PASSED [ 49%]
+test/flower_engine/3/test_planting_interaction.py::test_planting_calls_domain_persists_record_and_returns_fresh_render_spec PASSED [ 50%]
+test/flower_engine/3/test_planting_interaction.py::test_domain_remains_authoritative_for_conflicts_and_bounds PASSED [ 50%]
+test/flower_engine/3/test_planting_interaction.py::test_interaction_does_not_mutate_garden_or_flower_artifact PASSED [ 51%]
+test/flower_engine/3/test_planting_interaction.py::test_request_contract_rejects_non_integer_coordinates[x-True] PASSED [ 52%]
+test/flower_engine/3/test_planting_interaction.py::test_request_contract_rejects_non_integer_coordinates[x-1.5] PASSED [ 52%]
+test/flower_engine/3/test_planting_interaction.py::test_request_contract_rejects_non_integer_coordinates[y-False] PASSED [ 53%]
+test/flower_engine/3/test_planting_interaction.py::test_request_contract_rejects_non_integer_coordinates[y-2.5] PASSED [ 54%]
+test/flower_engine/3/test_planting_interaction.py::test_interaction_layer_has_no_llm_or_renderer_dependency PASSED [ 55%]
+test/flower_engine/4/test_blueprint_flower_binding.py::test_complete_blueprint_mapping_is_stable_and_bounded PASSED [ 55%]
+test/flower_engine/4/test_blueprint_flower_binding.py::test_secondary_emotions_and_scene_have_small_deterministic_effects PASSED [ 56%]
+test/flower_engine/4/test_blueprint_flower_binding.py::test_secondary_emotion_fills_unknown_primary_fallback PASSED [ 57%]
+test/flower_engine/4/test_blueprint_flower_binding.py::test_blueprint_changes_visual_attributes_without_audio_input PASSED [ 58%]
+test/flower_engine/4/test_blueprint_flower_binding.py::test_music_versions_do_not_change_persisted_flower PASSED [ 58%]
+test/flower_engine/4/test_blueprint_flower_binding.py::test_binding_has_no_audio_or_external_generation_dependency PASSED [ 59%]
+test/flower_engine/4/test_demo_flow.py::test_create_memory_persists_all_four_engine_outputs PASSED [ 60%]
+test/flower_engine/4/test_demo_flow.py::test_terrain_garden_persists_injected_flower_size_once[0.0-large-9] PASSED [ 61%]
+test/flower_engine/4/test_demo_flow.py::test_terrain_garden_persists_injected_flower_size_once[0.9-small-1] PASSED [ 61%]
+test/flower_engine/4/test_demo_flow.py::test_music_regeneration_keeps_flower_and_planting_unchanged PASSED [ 62%]
+test/flower_engine/4/test_demo_flow.py::test_selecting_history_persists_without_changing_memory_or_flower PASSED [ 63%]
+test/flower_engine/4/test_demo_flow.py::test_renaming_music_version_persists_without_changing_audio_or_flower PASSED [ 64%]
+test/flower_engine/4/test_demo_flow.py::test_failed_revision_keeps_current_and_history_unchanged PASSED [ 64%]
+test/flower_engine/4/test_demo_flow.py::test_invalid_or_occupied_position_stops_before_ai_and_music PASSED [ 65%]
+test/flower_engine/4/test_demo_flow.py::test_failed_music_generation_does_not_plant_or_save_flower PASSED [ 66%]
+test/flower_engine/4/test_demo_flow.py::test_application_layer_is_only_cross_engine_import_site PASSED [ 67%]
+test/flower_engine/4/test_demo_flow.py::test_http_payload_preserves_63_bit_variation_seed PASSED [ 67%]
+test/flower_engine/4/test_demo_flow.py::test_dig_up_removes_flower_but_keeps_memory_and_audio PASSED [ 68%]
+test/flower_engine/4/test_demo_flow.py::test_dig_up_keeps_shared_artifact_until_last_planting PASSED [ 69%]
+test/flower_engine/4/test_demo_flow.py::test_preview_bootstrap_does_not_restore_dug_up_flower PASSED [ 70%]
+test/music_companion/1/test_audio_analysis.py::test_analyze_mono_wav_returns_serializable_measurements PASSED [ 70%]
+test/music_companion/1/test_audio_analysis.py::test_analyze_stereo_short_and_silent_wav PASSED [ 71%]
+test/music_companion/1/test_audio_analysis.py::test_invalid_path_and_undecodable_file_are_clear_errors PASSED [ 72%]
+test/music_companion/1/test_audio_analysis.py::test_analyze_audio_artifact_reads_through_real_audio_store PASSED [ 73%]
+test/music_companion/2/test_semantic_analysis.py::test_semantic_analysis_reads_real_audio_store_and_ranks_scores PASSED [ 73%]
+test/music_companion/2/test_semantic_analysis.py::test_missing_audio_artifact_has_clear_error PASSED [ 74%]
+test/music_companion/2/test_semantic_analysis.py::test_clip_selection_is_deterministic_and_covers_beginning_middle_end PASSED [ 75%]
+test/music_companion/2/test_semantic_analysis.py::test_unfused_checkpoint_uses_single_channel_preprocessing_mode PASSED [ 76%]
+test/music_companion/2/test_semantic_analysis.py::test_model_result_dimension_mismatch_is_rejected PASSED [ 76%]
+test/music_companion/3/test_interpretation.py::test_interpretation_uses_real_audio_store_and_preserves_source PASSED [ 77%]
+test/music_companion/3/test_interpretation.py::test_invalid_instrument_is_rejected_then_retried PASSED [ 78%]
+test/music_companion/3/test_interpretation.py::test_analysis_result_must_belong_to_target_artifact PASSED [ 79%]
+test/music_companion/3/test_interpretation.py::test_exact_revision_is_resolved_for_matching_audio PASSED [ 79%]
+test/music_companion/3/test_interpretation.py::test_blueprint_instruments_and_listening_sections_are_completed PASSED [ 80%]
+test/music_companion/3/test_interpretation.py::test_malformed_llm_draft_uses_valid_guarded_fallback PASSED [ 81%]
+test/music_companion/3/test_interpretation.py::test_intent_alignment_is_removed_without_edit_instruction PASSED [ 82%]
+test/music_engine/1/test_audio_store.py::test_save_creates_audio_and_metadata PASSED [ 82%]
+test/music_engine/1/test_audio_store.py::test_each_save_creates_a_new_audio_file PASSED [ 83%]
+test/music_engine/1/test_audio_store.py::test_metadata_failure_removes_new_audio_file PASSED [ 84%]
+test/music_engine/1/test_audio_store.py::test_empty_audio_is_rejected_before_storage PASSED [ 85%]
+test/music_engine/1/test_music_generation_service.py::test_service_orchestrates_revision_to_audio_artifact PASSED [ 85%]
+test/music_engine/1/test_music_generation_service.py::test_provider_and_storage_errors_propagate PASSED [ 86%]
+test/music_engine/1/test_music_generation_service.py::test_repeated_generation_creates_new_artifacts PASSED [ 87%]
+test/music_engine/2/test_current_audio_selection.py::test_explicit_selection_pins_audio_and_clear_restores_latest PASSED [ 88%]
+test/music_engine/2/test_current_audio_selection.py::test_selection_rejects_missing_or_cross_revision_audio PASSED [ 88%]
+test/music_engine/2/test_current_audio_selection.py::test_stale_explicit_selection_reports_data_inconsistency PASSED [ 89%]
+test/music_engine/2/test_final_creation.py::test_finalize_archives_confirmation_and_is_idempotent PASSED [ 90%]
+test/music_engine/2/test_final_creation.py::test_prepare_or_confirm_failure_never_creates_final_creation PASSED [ 91%]
+test/music_engine/2/test_final_creation.py::test_archive_failure_restores_draft_for_safe_retry PASSED [ 91%]
+test/music_engine/2/test_final_creation.py::test_memory_id_mismatch_restores_draft_and_fails PASSED [ 92%]
+test/music_engine/2/test_music_confirmation.py::test_prepare_confirmation_uses_current_pinned_audio_and_creates_snapshot PASSED [ 93%]
+test/music_engine/2/test_music_confirmation.py::test_prepare_confirmation_rejects_no_current_audio_or_mismatched_audio PASSED [ 94%]
+test/music_engine/2/test_music_confirmation.py::test_new_or_restored_revision_without_audio_cannot_confirm PASSED [ 94%]
+test/music_engine/2/test_music_version_service.py::test_audio_store_filters_sorts_and_keeps_files_unchanged PASSED [ 95%]
+test/music_engine/2/test_music_version_service.py::test_music_version_service_delegates_to_audio_store PASSED [ 96%]
+test/music_engine/2/test_music_workspace.py::test_workspace_delegates_all_current_revision_operations PASSED [ 97%]
+test/music_engine/2/test_music_workspace.py::test_workspace_uses_new_revision_without_reusing_old_audio PASSED [ 97%]
+test/music_engine/2/test_music_workspace.py::test_workspace_restore_uses_the_original_revision_audio PASSED [ 98%]
+test/music_engine/2/test_music_workspace.py::test_workspace_rejects_missing_draft_or_invalid_current_revision PASSED [ 99%]
+test/music_engine/3/test_music_engine_end_to_end.py::test_full_creation_flow_uses_final_revision_and_pinned_audio PASSED [100%]
+
+============================== warnings summary ===============================
+test/music_companion/1/test_audio_analysis.py::test_analyze_mono_wav_returns_serializable_measurements
+  <USER_PROFILE>\Desktop\MuseGarden\.venv\Lib\site-packages\audioread\rawread.py:16: DeprecationWarning: 'aifc' is deprecated and slated for removal in Python 3.13
+    import aifc
+
+test/music_companion/1/test_audio_analysis.py::test_analyze_mono_wav_returns_serializable_measurements
+  <USER_PROFILE>\Desktop\MuseGarden\.venv\Lib\site-packages\audioread\rawread.py:17: DeprecationWarning: 'audioop' is deprecated and slated for removal in Python 3.13
+    import audioop
+
+test/music_companion/1/test_audio_analysis.py::test_analyze_mono_wav_returns_serializable_measurements
+  <USER_PROFILE>\Desktop\MuseGarden\.venv\Lib\site-packages\audioread\rawread.py:19: DeprecationWarning: 'sunau' is deprecated and slated for removal in Python 3.13
+    import sunau
+
+test/music_companion/1/test_audio_analysis.py::test_analyze_stereo_short_and_silent_wav
+  <USER_PROFILE>\Desktop\MuseGarden\.venv\Lib\site-packages\librosa\feature\spectral.py:2148: UserWarning: Empty filters detected in mel frequency basis. Some channels will produce empty responses. Try increasing your sampling rate (and fmax) or reducing n_mels.
+    mel_basis = filters.mel(sr=sr, n_fft=n_fft, **kwargs)
+
+test/music_companion/1/test_audio_analysis.py::test_invalid_path_and_undecodable_file_are_clear_errors
+  <USER_PROFILE>\Desktop\MuseGarden\music_companion\audio_analysis.py:39: UserWarning: PySoundFile failed. Trying audioread instead.
+    samples, sample_rate = librosa.load(path, sr=None, mono=False)
+
+test/music_companion/1/test_audio_analysis.py::test_invalid_path_and_undecodable_file_are_clear_errors
+  <USER_PROFILE>\Desktop\MuseGarden\.venv\Lib\site-packages\librosa\core\audio.py:184: FutureWarning: librosa.core.audio.__audioread_load
+  	Deprecated as of librosa version 0.10.0.
+  	It will be removed in librosa version 1.0.
+    y, sr_native = __audioread_load(path, offset, duration, dtype)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+====================== 134 passed, 6 warnings in 22.38s =======================

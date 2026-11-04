@@ -1,0 +1,59 @@
+﻿模型,字段,类型,必填,说明
+Garden,id,<class 'uuid.UUID'>,False,见模型声明及验证器
+Garden,name,<class 'str'>,True,见模型声明及验证器
+Garden,width,<class 'int'>,True,见模型声明及验证器
+Garden,height,<class 'int'>,True,见模型声明及验证器
+Garden,created_at,<class 'datetime.datetime'>,False,见模型声明及验证器
+PlantingRecord,id,<class 'uuid.UUID'>,False,见模型声明及验证器
+PlantingRecord,garden_id,<class 'uuid.UUID'>,True,见模型声明及验证器
+PlantingRecord,flower_artifact_id,<class 'uuid.UUID'>,True,见模型声明及验证器
+PlantingRecord,x,<class 'int'>,True,见模型声明及验证器
+PlantingRecord,y,<class 'int'>,True,见模型声明及验证器
+PlantingRecord,placement_schema_version,"typing.Literal['legacy', 'terrain-v1']",False,见模型声明及验证器
+PlantingRecord,flower_size,"typing.Literal['small', 'large']",False,见模型声明及验证器
+PlantingRecord,occupied_tiles,"tuple[tuple[int, int], ...]",False,见模型声明及验证器
+PlantingRecord,planted_at,<class 'datetime.datetime'>,False,见模型声明及验证器
+FlowerArtifact,id,<class 'uuid.UUID'>,False,见模型声明及验证器
+FlowerArtifact,creation_id,uuid.UUID | None,False,见模型声明及验证器
+FlowerArtifact,species,"typing.Literal['rose', 'peony', 'sunflower', 'tulip', 'hydrangea', 'lily', 'daisy', 'lavender', 'wildflower']",True,见模型声明及验证器
+FlowerArtifact,variation_seed,<class 'int'>,True,见模型声明及验证器
+FlowerArtifact,flower_spec,<class 'flower_engine.schema.FlowerSpec'>,True,见模型声明及验证器
+FlowerArtifact,render_spec,<class 'flower_engine.schema.FlowerRenderSpec'>,True,见模型声明及验证器
+FlowerArtifact,renderer_schema_version,typing.Literal['1.0'],False,见模型声明及验证器
+FlowerArtifact,template_id,<class 'str'>,True,见模型声明及验证器
+FlowerArtifact,created_at,<class 'datetime.datetime'>,False,见模型声明及验证器
+DemoCreationRecord,creation_id,<class 'uuid.UUID'>,True,见模型声明及验证器
+DemoCreationRecord,text,<class 'str'>,True,见模型声明及验证器
+DemoCreationRecord,garden_id,<class 'uuid.UUID'>,True,见模型声明及验证器
+DemoCreationRecord,flower_artifact_id,uuid.UUID | None,True,见模型声明及验证器
+DemoCreationRecord,planting_record_id,uuid.UUID | None,True,见模型声明及验证器
+DemoCreationRecord,current_audio_artifact_id,<class 'uuid.UUID'>,True,见模型声明及验证器
+DemoCreationRecord,music_blueprint,<class 'ai_engine.blueprint.schema.MusicBlueprint'>,True,见模型声明及验证器
+DemoCreationRecord,music_revision,<class 'int'>,True,见模型声明及验证器
+DemoCreationRecord,music_versions,"tuple[application.creation_service.DemoMusicVersion, ...]",False,见模型声明及验证器
+DemoCreationRecord,blueprint_revisions,"tuple[ai_engine.creation.schema.BlueprintRevision, ...]",False,见模型声明及验证器
+DemoMusicVersion,revision_id,<class 'uuid.UUID'>,True,见模型声明及验证器
+DemoMusicVersion,audio_artifact_id,<class 'uuid.UUID'>,True,见模型声明及验证器
+DemoMusicVersion,version,<class 'int'>,True,见模型声明及验证器
+DemoMusicVersion,modification_text,str | None,False,见模型声明及验证器
+DemoMusicVersion,display_name,str | None,False,见模型声明及验证器
+DemoMusicVersion,created_at,<class 'datetime.datetime'>,True,见模型声明及验证器
+AudioArtifact,id,<class 'uuid.UUID'>,False,见模型声明及验证器
+AudioArtifact,draft_id,<class 'uuid.UUID'>,True,见模型声明及验证器
+AudioArtifact,revision_id,<class 'uuid.UUID'>,True,见模型声明及验证器
+AudioArtifact,generation_spec,<class 'music_engine.schema.MusicGenerationSpec'>,True,见模型声明及验证器
+AudioArtifact,provider,<class 'str'>,False,见模型声明及验证器
+AudioArtifact,provider_task_id,<class 'str'>,True,见模型声明及验证器
+AudioArtifact,content_type,<class 'str'>,True,见模型声明及验证器
+AudioArtifact,file_path,<class 'str'>,True,见模型声明及验证器
+AudioArtifact,created_at,<class 'datetime.datetime'>,False,见模型声明及验证器
+MusicBlueprint,primary_emotion,<class 'str'>,True,见模型声明及验证器
+MusicBlueprint,secondary_emotions,list[str],True,见模型声明及验证器
+MusicBlueprint,energy,<class 'float'>,True,见模型声明及验证器
+MusicBlueprint,valence,<class 'float'>,True,见模型声明及验证器
+MusicBlueprint,tempo,<class 'int'>,True,见模型声明及验证器
+MusicBlueprint,key,<class 'str'>,True,见模型声明及验证器
+MusicBlueprint,instruments,list[str],True,见模型声明及验证器
+MusicBlueprint,texture,<class 'str'>,True,见模型声明及验证器
+MusicBlueprint,scene,<class 'str'>,True,见模型声明及验证器
+MusicBlueprint,progression,"typing.Literal['steady', 'calm', 'calm_to_rising', 'quiet_to_bright', 'restrained_to_open', 'gentle_to_bright', 'slow_build', 'gentle_to_climax', 'building_to_peak', 'intimate_to_expansive', 'sparse_to_full', 'soft_to_emotional', 'rising_to_release', 'tension_to_release', 'reflective_to_resolved', 'dark_to_hopeful', 'melancholic_to_warm', 'energetic_to_triumphant']",True,见模型声明及验证器

@@ -29,6 +29,7 @@ export class GardenWorld {
     private readonly host: HTMLElement,
     private readonly onTargetChange: (target: Interactable | null) => void = () => {},
     private readonly onInteract: (target: Interactable) => void = () => {},
+    private readonly onDeleteFlower: (target: Extract<Interactable, { kind: "flower" }>) => void = () => {},
   ) {}
 
   async init(): Promise<GardenLoadResult | null> {
@@ -176,8 +177,17 @@ export class GardenWorld {
   private readonly onKeyDown = (event: KeyboardEvent) => {
     const key = event.key.toLowerCase();
     if (this.inputPaused) return;
+    const isTextInput = event.target instanceof HTMLElement && event.target.closest("input, textarea, [contenteditable='true']");
+    if ((key === "delete" || key === "backspace") && !event.repeat && !event.altKey && !event.ctrlKey && !event.metaKey) {
+      const target = this.interactions?.currentTarget;
+      if (!isTextInput && target?.kind === "flower") {
+        event.preventDefault();
+        this.onDeleteFlower(target);
+      }
+      return;
+    }
     if (key === "e" && !event.repeat && !event.altKey && !event.ctrlKey && !event.metaKey) {
-      if (!(event.target instanceof HTMLElement && event.target.closest("input, textarea, [contenteditable='true']"))) {
+      if (!isTextInput) {
         if (this.interactions?.currentTarget) {
           event.preventDefault();
           this.interactions.interact();
@@ -186,7 +196,7 @@ export class GardenWorld {
       return;
     }
     if (!MOVEMENT_KEYS.has(key) || event.altKey || event.ctrlKey || event.metaKey) return;
-    if (event.target instanceof HTMLElement && event.target.closest("input, textarea, [contenteditable='true']")) return;
+    if (isTextInput) return;
     this.heldKeys.add(key);
     if (key.startsWith("arrow")) event.preventDefault();
   };

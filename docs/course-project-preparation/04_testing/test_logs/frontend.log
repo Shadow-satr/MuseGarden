@@ -1,0 +1,13 @@
+
+> musegarden-frontend@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.3 C:/Users/honor/Desktop/MuseGarden/frontend
+
+
+ Test Files  15 passed (15)
+      Tests  71 passed (71)
+   Start at  15:50:31
+   Duration  5.30s (environment 40%, import 27%, tests 21%, transform 11%, worker 1%)
+

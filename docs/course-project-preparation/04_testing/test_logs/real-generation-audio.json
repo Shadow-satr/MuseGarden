@@ -1,0 +1,8 @@
+{
+  "channels": 2,
+  "sample_rate": 48000,
+  "frames": 960000,
+  "duration_seconds": 20.0,
+  "format": "WAV",
+  "subtype": "FLOAT"
+}

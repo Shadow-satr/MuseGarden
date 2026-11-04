@@ -1,0 +1,21 @@
+{
+  "date_local": "2026-10-30T16:22:03.720204+08:00",
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "method": "10 batches of 10000 plan_planting calls, empty existing list, prefer_large=True, same legal position; no I/O",
+  "batch_ms": [
+    36.15929999796208,
+    37.39159999531694,
+    46.355600003153086,
+    38.996699993731454,
+    37.51399999600835,
+    37.67079999670386,
+    37.967399999615736,
+    34.33640000002924,
+    35.45940000913106,
+    34.20150000602007
+  ],
+  "mean_us_per_call": 3.760526999976719,
+  "note": "microbenchmark only; not generation latency or concurrent system performance",
+  "max_batch_us_per_call": 4.635560000315309
+}

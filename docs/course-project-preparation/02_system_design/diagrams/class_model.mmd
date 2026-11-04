@@ -1,0 +1,41 @@
+classDiagram
+ class Garden {
+  UUID id
+  str name
+  int width
+  int height
+ }
+ class PlantingRecord {
+  UUID id
+  UUID garden_id
+  UUID flower_artifact_id
+  int x
+  int y
+  str flower_size
+ }
+ class FlowerArtifact {
+  UUID id
+  UUID creation_id
+  int variation_seed
+  FlowerRenderSpec render_spec
+ }
+ class DemoCreationRecord {
+  UUID creation_id
+  UUID garden_id
+  UUID current_audio_artifact_id
+  MusicBlueprint music_blueprint
+ }
+ class DemoMusicVersion {
+  UUID revision_id
+  UUID audio_artifact_id
+  int version
+ }
+ class AudioArtifact {
+  UUID id
+  UUID revision_id
+  str file_path
+ }
+ Garden "1" --> "0..*" PlantingRecord : garden_id
+ PlantingRecord --> FlowerArtifact : flower_artifact_id
+ DemoCreationRecord --> "0..*" DemoMusicVersion : music_versions
+ DemoMusicVersion --> AudioArtifact : audio_artifact_id

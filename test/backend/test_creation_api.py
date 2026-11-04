@@ -25,6 +25,18 @@ def post(handler_type, path, payload):
     return statuses[0], json.loads(handler.wfile.getvalue())
 
 
+def delete(handler_type, path):
+    handler = handler_type.__new__(handler_type)
+    handler.path = path
+    handler.wfile = BytesIO()
+    statuses = []
+    handler.send_response = statuses.append
+    handler.send_header = lambda *_args: None
+    handler.end_headers = lambda: None
+    handler.do_DELETE()
+    return statuses[0], json.loads(handler.wfile.getvalue())
+
+
 def test_formal_creation_route_uses_schema_and_returns_creation_result():
     garden_id = uuid4()
     creation = SimpleNamespace(create_memory=Mock(return_value={
@@ -86,3 +98,19 @@ def test_music_version_name_route_uses_stable_creation_and_audio_ids():
 
     assert status == HTTPStatus.OK
     creation.rename_music_version.assert_called_once_with(creation_id, audio_id, "晨光版")
+
+
+def test_garden_planting_delete_removes_the_flower_from_the_live_preview():
+    garden_id = uuid4()
+    planting_id = uuid4()
+    creation = SimpleNamespace(dig_up_flower=Mock())
+    preview = SimpleNamespace(model_dump=lambda mode: {"garden_id": str(garden_id), "flowers": []})
+    interaction = SimpleNamespace(get_preview=Mock(return_value=preview))
+    handler_type = create_handler(interaction, garden_id, creation)
+
+    status, result = delete(handler_type, f"/api/gardens/{garden_id}/plantings/{planting_id}")
+
+    assert status == HTTPStatus.OK
+    creation.dig_up_flower.assert_called_once_with(garden_id, planting_id)
+    interaction.get_preview.assert_called_once_with(garden_id)
+    assert result["flowers"] == []

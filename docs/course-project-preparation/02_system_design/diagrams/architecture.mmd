@@ -1,0 +1,10 @@
+flowchart LR
+ User[用户浏览器] --> FE[React Pixi 前端]
+ FE --> API[本地 HTTP API]
+ API --> APP[CreationService]
+ APP --> AI[AI Engine]
+ AI --> O[Ollama]
+ APP --> M[Music Engine]
+ M --> A[ACE-Step]
+ APP --> F[Flower Engine]
+ APP --> S[JSON 与 WAV]

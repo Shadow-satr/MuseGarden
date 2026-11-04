@@ -1,0 +1,12 @@
+﻿用例ID,模块,目标,具体测试,前置,输入步骤,预期,实际状态,代码,日志
+TC-F01,地图移动,WASD 与方向键,GardenWorld 键盘测试,测试实例加载,按方向移动并卸载,绑定移动并清理事件,PASS,frontend/src/world/GardenWorld.test.ts,vitest-verbose.log
+TC-F02,记忆输入,打开、取消并再次打开,App UI 测试,虚拟花园,选择空地，关闭并重新打开,关闭恢复输入，重新打开,PASS,frontend/src/App.test.tsx,vitest-verbose.log
+TC-F03,记忆详情,展示文字和音频地址,FlowerDetailOverlay 测试,虚拟详情,传入文字和音频地址,显示各自文字与地址,PASS,frontend/src/ui/FlowerDetailOverlay.test.tsx,vitest-verbose.log
+TC-P01,创建接口,有效请求,test_formal_creation_route_uses_schema_and_returns_creation_result,模拟创作服务,POST UUID、文字和整数坐标,201 且调用服务,PASS,test/backend/test_creation_api.py,pytest-verbose.log
+TC-P02,占地冲突,大小花及冲突,test/application/test_garden_planting.py,模拟种植记录,测试小花、大花、边缘、相邻和中心冲突,正确占地、降级或报错,PASS,test/application/test_garden_planting.py,pytest-verbose.log
+TC-P03,音频版本服务,委托版本查询,test_music_version_service_delegates_to_audio_store,测试 AudioStore,通过服务读取版本,正确委托和返回,PASS,test/music_engine/2/test_music_version_service.py,pytest-verbose.log
+TC-P04,选择音乐,稳定 UUID,test_music_selection_route_uses_stable_creation_and_audio_ids,模拟创作服务,POST 创建和音频 UUID,200 并使用对应 ID,PASS,test/backend/test_creation_api.py,pytest-verbose.log
+TC-P05,声学分析,无效路径及无法解码,test_invalid_path_and_undecodable_file_are_clear_errors,pytest 临时路径,传入缺失或错误 WAV,清晰报错,PASS,test/music_companion/1/test_audio_analysis.py,pytest-verbose.log
+TC-P06,音乐解读,错误草稿回退,test_malformed_llm_draft_uses_valid_guarded_fallback,测试替身与临时音频,提供格式错误的模型输出,使用受控回退,PASS,test/music_companion/3/test_interpretation.py,pytest-verbose.log
+TC-P07,持久化,种植历史兼容,test_historical_record_without_size_fields_defaults_to_small,构造旧记录,不传尺寸字段,旧 schema 和 small 默认值,PASS,test/application/test_garden_planting.py,pytest-verbose.log
+TC-B01,性能,占地微基准,10 批次，每批 10000 次,空记录、同一合法坐标,重复调用 plan_planting,记录耗时；无目标阈值,MEASURED,04_testing/benchmark_planting.py,planting-benchmark.json

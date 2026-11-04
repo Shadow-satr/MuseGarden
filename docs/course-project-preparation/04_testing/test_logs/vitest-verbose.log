@@ -1,0 +1,84 @@
+
+> musegarden-frontend@0.1.0 test
+> vitest run --reporter=verbose
+
+
+ RUN  v5.0.3 C:/Users/honor/Desktop/MuseGarden/frontend
+
+ ✓ src/api/garden.test.ts > garden API > loads and validates the live GardenRenderSpec 5ms
+ ✓ src/api/garden.test.ts > garden API > reports API failure instead of showing a static demo garden 3ms
+ ✓ src/api/creation.test.ts > creation API > sends the real backend schema and accepts the matching planting and audio 4ms
+ ✓ src/api/creation.test.ts > creation API > surfaces backend errors and rejects a result planted elsewhere 3ms
+ ✓ src/api/creation.test.ts > creation API > loads the memory that matches both the planting and flower ids 1ms
+ ✓ src/api/creation.test.ts > creation API > does not substitute another flower when the requested relation is absent 1ms
+ ✓ src/api/creation.test.ts > creation API > still returns the persisted text when its audio is unavailable 0ms
+ ✓ src/api/creation.test.ts > creation API > submits revision text and version selection to their stable creation 2ms
+ ✓ src/world/TerrainMap.test.ts > Grid terrain map > keeps the formal world dimensions on a 16px grid 4ms
+ ✓ src/world/TerrainMap.test.ts > Grid terrain map > classifies every cell and includes every Step 13 terrain type 3ms
+ ✓ src/world/TerrainMap.test.ts > Grid terrain map > keeps NW and SE continuous while the other fields retain six soil patches 6ms
+ ✓ src/world/TerrainMap.test.ts > Grid terrain map > keeps water and structures blocked while paths, bridges and soil are walkable 1ms
+ ✓ src/world/TerrainMap.test.ts > Grid terrain map > joins the western river to an eight-cell-deep southern water band 0ms
+ ✓ src/world/TerrainMap.test.ts > Grid terrain map > places the west and south bridges across water with connected road ends 1ms
+ ✓ src/world/TerrainMap.test.ts > Grid terrain map > keeps bridges on water only and the same width as their roads 2ms
+ ✓ src/world/TerrainMap.test.ts > Grid terrain map > keeps every road and bridge cell in one connected network 5ms
+ ✓ src/world/TerrainMap.test.ts > Grid terrain map > matches every field entrance to the four-cell-wide middle planting column 3ms
+ ✓ src/world/Camera.test.ts > cameraPositionFor > keeps the view at the top-left until centering is possible 3ms
+ ✓ src/world/Camera.test.ts > cameraPositionFor > follows a world-space focus point through the middle of the world 0ms
+ ✓ src/world/Camera.test.ts > cameraPositionFor > clamps every side to the world without exposing an empty region 0ms
+ ✓ src/world/GardenMapLayout.test.ts > Garden map layout bindings > binds exactly six backend cells to each of four visible fields 6ms
+ ✓ src/world/GardenMapLayout.test.ts > Garden map layout bindings > maps bound flowers to farm slots and preserves legacy flower positions 1ms
+ ✓ src/world/GardenMapLayout.test.ts > Garden map layout bindings > uses persisted terrain centers and footprints for Step 14 flowers 1ms
+ ✓ src/world/interactions.test.ts > Interaction System > finds a nearby spot, clears it on departure, and ignores E without a target 5ms
+ ✓ src/world/interactions.test.ts > Interaction System > identifies a flower only after the player's feet enter its cell 1ms
+ ✓ src/world/interactions.test.ts > Interaction System > activates a planting spot only when the player's feet enter its cell 0ms
+ ✓ src/world/interactions.test.ts > Interaction System > chooses the nearest target if multiple objects share one cell 0ms
+ ✓ src/world/interactions.test.ts > Interaction System > exposes every unoccupied SOIL terrain tile as a planting position 9ms
+ ✓ src/world/interactions.test.ts > Interaction System > maps all nine occupied tiles of a large flower to one memory target 4ms
+ ✓ src/world/PlotCalibration.test.ts > Step 10 plot calibration > keeps a centred 3 by 2 field large enough to inspect in the current world 2ms
+ ✓ src/world/PlotCalibration.test.ts > Step 10 plot calibration > uses evenly sized cells and a player slightly taller than one cell 0ms
+ ✓ src/world/entities/Player.test.ts > Player movement > starts in the garden and moves continuously at a fixed speed 9ms
+ ✓ src/world/entities/Player.test.ts > Player movement > normalizes diagonal movement 1ms
+ ✓ src/world/entities/Player.test.ts > Player movement > keeps the player's feet inside every outermost grid cell 7ms
+ ✓ src/world/entities/Player.test.ts > Player movement > blocks forbidden terrain and slides along its edge 1ms
+ ✓ src/world/entities/Player.test.ts > Player movement > starts each direction on its neutral walk frame and idles when stopped 1ms
+ ✓ src/world/entities/Player.test.ts > Player movement > advances walk frames at about nine per second and loops 1ms
+ ✓ src/world/entities/Player.test.ts > Player movement > keeps the step phase when only the facing changes mid-walk 0ms
+ ✓ src/world/TerrainRenderer.test.ts > Mini Meadow terrain renderer > chooses grass variation deterministically without changing terrain data 3ms
+ ✓ src/world/TerrainRenderer.test.ts > Mini Meadow terrain renderer > uses the second grass texture often enough to break large-area repetition 3ms
+ ✓ src/world/TerrainRenderer.test.ts > Mini Meadow terrain renderer > uses exactly one fixed-width bank edge for each WATER-to-land side and none against bridges 2ms
+ ✓ src/world/TerrainRenderer.test.ts > Mini Meadow terrain renderer > only outlines the exterior of connected bridge and structure cells 1ms
+ ✓ src/world/TerrainRenderer.test.ts > Mini Meadow terrain renderer > renders grass, water, paths and uniform bank outlines in separate layers 50ms
+ ✓ src/rendering/flowers/gardenRenderer.test.ts > Garden renderer contract > accepts the Python-exported scene and rejects broken dimensions 6ms
+ ✓ src/rendering/flowers/gardenRenderer.test.ts > Garden renderer contract > builds one depth-sorted Pixi placement for every flower 21ms
+ ✓ src/rendering/flowers/gardenRenderer.test.ts > Garden renderer contract > renders persisted large flowers at a visibly larger stable scale 2ms
+ ✓ src/rendering/flowers/gardenRenderer.test.ts > Garden renderer contract > keeps all templates, sizes and logical positions from the fixture 2ms
+ ✓ src/world/GardenWorld.test.ts > GardenWorld keyboard integration > attaches a player, handles WASD and arrows, then removes listeners 27ms
+ ✓ src/world/GardenWorld.test.ts > GardenWorld keyboard integration > updates the target after movement and invokes it once on E 8ms
+ ✓ src/world/GardenWorld.test.ts > GardenWorld keyboard integration > pauses movement and E while the creation overlay is open, then resumes 6ms
+ ✓ src/world/GardenWorld.test.ts > GardenWorld keyboard integration > refreshes the planted flower at the chosen spot without moving the player 10ms
+ ✓ src/ui/WorldOverlay.test.tsx > WorldOverlay interaction hint > follows the current target and hides when none is nearby 53ms
+ ✓ src/ui/AudioPlayer.test.tsx > creation result audio > plays and pauses the returned audio URL 259ms
+ ✓ src/ui/FlowerDetailOverlay.test.tsx > FlowerDetailOverlay > shows the persisted text and its own audio URL 248ms
+ ✓ src/ui/FlowerDetailOverlay.test.tsx > FlowerDetailOverlay > keeps close and retry available when loading fails 78ms
+ ✓ src/App.test.tsx > Garden World shell > mounts one world and keeps an HTML overlay above it 332ms
+ ✓ src/ui/FlowerDetailOverlay.test.tsx > FlowerDetailOverlay > keeps the memory readable when no audio URL is available 57ms
+ ✓ src/ui/FlowerDetailOverlay.test.tsx > FlowerDetailOverlay > edits music with a 500 character limit and keeps the original memory 229ms
+ ✓ src/ui/FlowerDetailOverlay.test.tsx > FlowerDetailOverlay > shows real history and selects a different version 143ms
+ ✓ src/ui/FlowerDetailOverlay.test.tsx > FlowerDetailOverlay > saves a version name with Enter and abandons it with Escape 502ms
+ ✓ src/App.test.tsx > Garden World shell > reports an error when the garden API is unavailable 32ms
+ ✓ src/App.test.tsx > Garden World shell > opens the map with M, pauses input, then closes with M or Escape 849ms
+ ✓ src/App.test.tsx > Garden World shell > does not open the map while a creation panel or text input owns the keyboard 41ms
+ ✓ src/App.test.tsx > Garden World shell > opens from a plant spot, pauses input, clears on cancel, and opens again 243ms
+ ✓ src/App.test.tsx > Garden World shell > opens the selected flower's persisted memory and restores movement on close 112ms
+ ✓ src/App.test.tsx > Garden World shell > keeps memories from two flowers separate 98ms
+ ✓ src/App.test.tsx > Garden World shell > revises the selected flower and persists history selection through the API 342ms
+ ✓ src/App.test.tsx > Garden World shell > sends the trimmed draft once, stays paused while loading, and shows the response 169ms
+ ✓ src/App.test.tsx > Garden World shell > keeps the draft after failure, retries, and cancels an in-flight request 325ms
+ ✓ src/App.test.tsx > Garden World shell > retries only the garden refresh after creation already succeeded 293ms
+ ✓ src/App.test.tsx > Garden World shell > does not offer a duplicate submission after an incomplete success response 218ms
+
+ Test Files  15 passed (15)
+      Tests  71 passed (71)
+   Start at  16:21:27
+   Duration  6.50s (environment 38%, import 30%, tests 19%, transform 12%, worker 1%)
+

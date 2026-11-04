@@ -1,0 +1,20 @@
+
+> musegarden-frontend@0.1.0 build
+> tsc -b && vite build
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 780 modules transformed.
+rendering chunks...
+✗ Build failed in 3.76s
+error during build:
+[vite:esbuild-transpile] remove <USER_PROFILE>\AppData\Local\Temp\esbuild-2c6e58930e9381f462e225123217bd4d5a176dd8f8e1a1fe8234eb03d54cacf9: Access is denied.
+    at <USER_PROFILE>\Desktop\MuseGarden\frontend\node_modules\esbuild\lib\main.js:1001:38
+    at responseCallbacks.<computed> (<USER_PROFILE>\Desktop\MuseGarden\frontend\node_modules\esbuild\lib\main.js:886:9)
+    at handleIncomingPacket (<USER_PROFILE>\Desktop\MuseGarden\frontend\node_modules\esbuild\lib\main.js:940:31)
+    at Socket.readFromStdout (<USER_PROFILE>\Desktop\MuseGarden\frontend\node_modules\esbuild\lib\main.js:864:7)
+    at Socket.emit (node:events:508:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)

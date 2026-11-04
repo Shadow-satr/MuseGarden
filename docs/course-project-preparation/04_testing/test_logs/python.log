@@ -1,0 +1,31 @@
+........................................................................ [ 53%]
+..............................................................           [100%]
+============================== warnings summary ===============================
+test/music_companion/1/test_audio_analysis.py::test_analyze_mono_wav_returns_serializable_measurements
+  <USER_PROFILE>\Desktop\MuseGarden\.venv\Lib\site-packages\audioread\rawread.py:16: DeprecationWarning: 'aifc' is deprecated and slated for removal in Python 3.13
+    import aifc
+
+test/music_companion/1/test_audio_analysis.py::test_analyze_mono_wav_returns_serializable_measurements
+  <USER_PROFILE>\Desktop\MuseGarden\.venv\Lib\site-packages\audioread\rawread.py:17: DeprecationWarning: 'audioop' is deprecated and slated for removal in Python 3.13
+    import audioop
+
+test/music_companion/1/test_audio_analysis.py::test_analyze_mono_wav_returns_serializable_measurements
+  <USER_PROFILE>\Desktop\MuseGarden\.venv\Lib\site-packages\audioread\rawread.py:19: DeprecationWarning: 'sunau' is deprecated and slated for removal in Python 3.13
+    import sunau
+
+test/music_companion/1/test_audio_analysis.py::test_analyze_stereo_short_and_silent_wav
+  <USER_PROFILE>\Desktop\MuseGarden\.venv\Lib\site-packages\librosa\feature\spectral.py:2148: UserWarning: Empty filters detected in mel frequency basis. Some channels will produce empty responses. Try increasing your sampling rate (and fmax) or reducing n_mels.
+    mel_basis = filters.mel(sr=sr, n_fft=n_fft, **kwargs)
+
+test/music_companion/1/test_audio_analysis.py::test_invalid_path_and_undecodable_file_are_clear_errors
+  <USER_PROFILE>\Desktop\MuseGarden\music_companion\audio_analysis.py:39: UserWarning: PySoundFile failed. Trying audioread instead.
+    samples, sample_rate = librosa.load(path, sr=None, mono=False)
+
+test/music_companion/1/test_audio_analysis.py::test_invalid_path_and_undecodable_file_are_clear_errors
+  <USER_PROFILE>\Desktop\MuseGarden\.venv\Lib\site-packages\librosa\core\audio.py:184: FutureWarning: librosa.core.audio.__audioread_load
+  	Deprecated as of librosa version 0.10.0.
+  	It will be removed in librosa version 1.0.
+    y, sr_native = __audioread_load(path, offset, duration, dtype)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+134 passed, 6 warnings in 22.44s

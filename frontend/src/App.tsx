@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
-  createMemory, CreationResponseError, loadFlowerMemory, renameFlowerMusicVersion, reviseFlowerMusic, selectFlowerMusicVersion,
+  createMemory, CreationResponseError, loadFlowerMemory, removeFlowerFromGarden, renameFlowerMusicVersion, reviseFlowerMusic, selectFlowerMusicVersion,
   type CreationDraft, type CreationResult, type FlowerMemory,
 } from "./api/creation";
 import { GardenWorldView } from "./components/GardenWorldView";
@@ -9,6 +9,7 @@ import { MapOverview } from "./components/MapOverview";
 import { CreationOverlay, type CreationStatus } from "./ui/CreationOverlay";
 import { FlowerDetailOverlay } from "./ui/FlowerDetailOverlay";
 import { MiniMapOverlay } from "./ui/MiniMapOverlay";
+import { OnboardingOverlay } from "./ui/OnboardingOverlay";
 import { WorldOverlay } from "./ui/WorldOverlay";
 import type { Interactable } from "./world/interactions";
 import type { GardenWorld } from "./world/GardenWorld";
@@ -29,15 +30,23 @@ function GardenApp() {
   const [selectingAudioId, setSelectingAudioId] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
   const [mapPlayerPosition, setMapPlayerPosition] = useState<{ x: number; y: number } | null>(null);
+  const [guideOpen, setGuideOpen] = useState(() => window.localStorage.getItem("musegarden-onboarding-complete") !== "true");
   const pendingRequest = useRef<AbortController | null>(null);
+  const deleteRequest = useRef<AbortController | null>(null);
   const flowerDetailRequest = useRef<AbortController | null>(null);
   const musicRequest = useRef<AbortController | null>(null);
   const worldRef = useRef<GardenWorld | null>(null);
-  const overlayOpen = selectedPlantSpot !== null || selectedFlower !== null;
+  const overlayOpen = selectedPlantSpot !== null || selectedFlower !== null || guideOpen;
   const onWorldReady = useCallback((world: GardenWorld | null) => { worldRef.current = world; }, []);
+  const onCloseGuide = useCallback(() => {
+    window.localStorage.setItem("musegarden-onboarding-complete", "true");
+    setGuideOpen(false);
+  }, []);
   useEffect(() => () => {
     pendingRequest.current?.abort();
     pendingRequest.current = null;
+    deleteRequest.current?.abort();
+    deleteRequest.current = null;
     flowerDetailRequest.current?.abort();
     flowerDetailRequest.current = null;
     musicRequest.current?.abort();
@@ -100,6 +109,31 @@ function GardenApp() {
       void readFlowerMemory(current);
     }
   }, [readFlowerMemory]);
+  const onDeleteFlower = useCallback(async (flower: Extract<Interactable, { kind: "flower" }>) => {
+    if (deleteRequest.current) return;
+    const world = worldRef.current;
+    const gardenId = world?.currentGardenId;
+    if (!world || !gardenId) {
+      setInteractionMessage("花园尚未就绪，暂时无法删除花朵。");
+      return;
+    }
+    const controller = new AbortController();
+    deleteRequest.current = controller;
+    setInteractionMessage("正在移除花朵…");
+    try {
+      await removeFlowerFromGarden(gardenId, flower.plantingRecordId, controller.signal);
+      if (deleteRequest.current !== controller) return;
+      await world.refreshGarden(undefined, controller.signal);
+      if (deleteRequest.current === controller) {
+        setInteractionMessage("花朵已移除，这块地可以重新种下记忆。");
+      }
+    } catch (error) {
+      if (deleteRequest.current !== controller || controller.signal.aborted) return;
+      setInteractionMessage(error instanceof Error ? `删除失败：${error.message}` : "删除失败，请重试。");
+    } finally {
+      if (deleteRequest.current === controller) deleteRequest.current = null;
+    }
+  }, []);
   const onCloseFlowerDetail = useCallback(() => {
     flowerDetailRequest.current?.abort();
     flowerDetailRequest.current = null;
@@ -262,8 +296,8 @@ function GardenApp() {
     }
   }, [creationResult]);
   return <main className="world-shell">
-    <WorldOverlay target={overlayOpen ? null : target} interactionMessage={interactionMessage} />
-    <GardenWorldView onTargetChange={onTargetChange} onInteract={onInteract} onReady={onWorldReady} paused={overlayOpen || mapOpen} />
+    <WorldOverlay target={overlayOpen ? null : target} interactionMessage={interactionMessage} onOpenGuide={() => setGuideOpen(true)} />
+    <GardenWorldView onTargetChange={onTargetChange} onInteract={onInteract} onDeleteFlower={onDeleteFlower} onReady={onWorldReady} paused={overlayOpen || mapOpen} />
     {selectedPlantSpot && <CreationOverlay
       plantSpotId={selectedPlantSpot.id}
       status={creationStatus}
@@ -287,6 +321,7 @@ function GardenApp() {
       onRenameVersion={onRenameFlowerMusic}
     />}
     {mapOpen && <MiniMapOverlay playerPosition={mapPlayerPosition} />}
+    {guideOpen && <OnboardingOverlay onClose={onCloseGuide} />}
   </main>;
 }
 

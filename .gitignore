@@ -11,6 +11,8 @@ __pycache__/
 /.pip-tmp/
 /.model-cache/
 /tmp*
+/.build-temp/
+/frontend/.build-temp/
 
 # Frontend build output and incremental compiler state
 /frontend/dist/

@@ -1,0 +1,14 @@
+sequenceDiagram
+ actor U as 用户
+ participant F as 前端
+ participant H as HTTP API
+ participant C as CreationService
+ participant M as 音乐服务
+ participant S as 文件存储
+ U->>F: 输入文字与空地
+ F->>H: POST /api/creations
+ H->>C: create_memory
+ C->>C: 位置检查与蓝图生成
+ C->>M: 生成音频
+ C->>S: 保存记忆 音频 花朵 种植
+ C-->>F: 创作结果

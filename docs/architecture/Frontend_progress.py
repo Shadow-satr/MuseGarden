@@ -898,3 +898,43 @@ Grid Terrain Map、1×1 / 3×3 花朵占地、Mini Map，以及 Step 16.1–16.5
 验证边界：前端构建、各模块自动化测试和若干正式浏览器流程已在各 Step 分别执行；完整端到端 AI / ACE-Step
 生成仍依赖本机 Ollama、ACE-Step 与模型就绪状态，不能把自动化测试等同于每次机器环境中的人工生成验收。
 """
+
+MAINTENANCE_FLOWER_REMOVAL = """
+Maintenance — Flower Removal & Tile Replanting
+================================================
+
+目标：在不扩展新玩法的前提下，让玩家能在已种植花朵的占地范围内直接移除花朵，并把对应 SOIL 格恢复为可种植状态。
+
+实现：复用已有 `DELETE /api/gardens/{garden_id}/plantings/{planting_record_id}` 种植移除接口；前端不伪造删除状态。
+当玩家脚底进入一朵小花的 1×1 或大花的 3×3 占地范围，World Overlay 同时显示原有 `[E] 查看记忆` 与
+`[Delete] 删除花朵`。查看与删除提示以分开的横向间距显示。Delete 或 Backspace 键只在当前目标为花朵、未长按、
+无修饰键且焦点不在输入控件时触发；按键后刷新
+GardenRenderSpec，因此已移除花朵的格子会重新变为可用的 SOIL 种植位。
+
+数据约定：依据后续确认，删除只移除花园中的 PlantingRecord 与不再引用的 FlowerArtifact；该次创作的原始文字、
+音乐和版本记录仍在本地归档中保留，但不会再作为花园中的可交互花朵出现。没有前端恢复按钮；若要再次种植，玩家在
+释放后的 SOIL 格重新走完整创作流程。
+
+验证：前端 API、Overlay、GardenWorld 键盘及 App 回归共 26 项 Vitest 测试通过；后端既有种植移除、保留记忆和
+HTTP DELETE 契约合计 19 项测试通过。未在正式花园数据上按 Delete 做人工删除，以避免为了验收而删除用户现有记忆；需由用户在想
+移除的实际花朵上进行一次人工验收。此前 `npm run build` 曾被系统临时 esbuild 文件的访问拒绝阻断，不是 TypeScript
+编译错误；在该锁释放后应重新运行构建确认。
+
+范围：未修改地形地图、大小花规则、Player、摄像机、Creation、Flower Detail、音乐版本、后端数据模型或任一 Engine。
+"""
+
+MAINTENANCE_ONBOARDING = """
+Maintenance — First-use Onboarding
+==================================
+
+目标：根据真实试用中“初次进入不清楚从何开始”的反馈，为首次使用者提供简短、可重复查看的操作引导。
+
+实现：`OnboardingOverlay` 在首次访问时显示移动、空地/花朵 `E` 交互、`M` 地图及 `Delete` 删除花朵四项说明。
+关闭“开始探索”后，将完成状态写入浏览器 localStorage 的 `musegarden-onboarding-complete`；后续访问不会自动打断体验，
+但用户可从 World Overlay 的“新手指引”按钮随时重新打开。引导显示时暂停世界输入，与创建、花朵详情和地图弹窗共用暂停边界。
+
+验证（2026-11-04）：前端 Vitest 15 个测试文件、75 项测试通过，覆盖首次展示、关闭后的持久化和手动再次打开；
+TypeScript / Vite 构建通过。真实本地界面截图已归档到课程材料的 `04 测试与验证/测试截图/MT10-首次使用引导.png`。
+
+范围：不更改创建、音乐生成、花朵数据、地图布局或后端接口；仅改善首次理解成本。
+"""

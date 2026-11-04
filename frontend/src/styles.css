@@ -11,12 +11,18 @@ html, body, #root { width: 100%; min-width: 320px; min-height: 100%; margin: 0; 
 .world-title span { font: 700 11px system-ui, sans-serif; letter-spacing: .25em; }
 .world-title h1 { margin: 5px 0; font-size: clamp(28px, 4vw, 50px); font-weight: 400; line-height: 1.2; }
 .interaction-hint { margin-left: auto; min-width: 130px; font: 15px system-ui, sans-serif; text-align: center; }
+.interaction-actions { display: flex; justify-content: flex-end; align-items: center; gap: 24px; white-space: nowrap; }
 .interaction-hint kbd { padding: 3px 7px; border: 1px solid #f4efdb88; border-radius: 5px; font: inherit; }
 .interaction-hint small { display: block; margin-top: 7px; color: #d9d2ad; }
 .overlay-button { pointer-events: auto; cursor: pointer; border: 1px solid #f4efdb88; border-radius: 10px; color: #f6efda; background: #14261ccf; padding: 10px 14px; font: 16px system-ui, sans-serif; }
 .overlay-button:focus-visible { outline: 3px solid #f6efda; outline-offset: 3px; }
 .creation-backdrop { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 20px; background: #07140b99; backdrop-filter: blur(2px); }
 .creation-panel { width: min(100%, 480px); max-height: min(90vh, 720px); overflow: auto; padding: clamp(24px, 4vw, 38px); border: 1px solid #d9d1a96b; border-radius: 18px; background: #14271ef0; box-shadow: 0 22px 75px #020905bb; }
+.onboarding-backdrop { z-index: 20; }
+.onboarding-panel { width: min(100%, 540px); }
+.onboarding-steps { display: grid; gap: 13px; margin: 0; padding: 17px 18px 17px 38px; border: 1px solid #c8d0ae42; border-radius: 12px; color: #e4e9d7; background: #0c1b15b8; font: 14px/1.65 system-ui, sans-serif; }
+.onboarding-steps li { padding-left: 3px; }
+.onboarding-steps kbd { margin: 0 3px; padding: 2px 6px; border: 1px solid #e7e2bf99; border-radius: 4px; color: #fff8df; background: #21392a; font: 12px system-ui, sans-serif; }
 .creation-eyebrow { margin: 0 0 12px; color: #c4cfa8; font: 700 10px system-ui, sans-serif; letter-spacing: .22em; }
 .creation-panel h2 { margin: 0; font-size: clamp(28px, 5vw, 38px); font-weight: 400; }
 .creation-description { margin: 12px 0 26px; color: #d6dccb; font: 15px system-ui, sans-serif; }
