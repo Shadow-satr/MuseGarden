@@ -67,9 +67,14 @@ export function FlowerDetailOverlay({
       </div>}
 
       {status === "success" && memory && <div className="creation-result">
-        <FlowerPortrait species={memory.flower.species} renderSpec={memory.flower.render_spec} />
-        <p className="flower-detail-species">{memory.flower.species}</p>
-        <blockquote>{memory.text}</blockquote>
+        <div className="flower-memory-hero">
+          <div className="flower-memory-aura"><FlowerPortrait species={memory.flower.species} renderSpec={memory.flower.render_spec} /></div>
+          <div className="flower-memory-labels">
+            <span>MEMORY BLOOM</span>
+            <p className="flower-detail-species">{memory.flower.species}</p>
+          </div>
+        </div>
+        <blockquote><span>留存的片段</span>{memory.text}</blockquote>
 
         <section className="music-version-section" aria-labelledby="music-version-title">
           <div className="music-version-heading">

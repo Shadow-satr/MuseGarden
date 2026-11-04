@@ -55,6 +55,8 @@ describe("Mini Meadow terrain renderer", () => {
     expect(child("pixel-wood-bridge-details")).toBeTruthy();
     expect(child("pixel-structure-details")).toBeTruthy();
     expect(child("uniform-water-bank-outlines")).toBeTruthy();
-    expect(layer.children).toHaveLength(7);
+    expect(child("terrain-transition-details")).toBeTruthy();
+    expect(child("garden-landmarks")).toBeTruthy();
+    expect(layer.children).toHaveLength(9);
   });
 });

@@ -175,3 +175,30 @@ body { background: #0a1510; }
 .mini-map-header span { color: #c9d2ba; font: 12px system-ui, sans-serif; }
 .mini-map-canvas { display: block; width: 100%; max-height: calc(90vh - 82px); border: 1px solid rgb(239 234 207 / 28%); border-radius: 8px; background: #3d6949; image-rendering: pixelated; }
 .mini-map-player { fill: #f4e477; stroke: #142116; stroke-width: 9px; }
+
+/* The memory detail view is treated as a keepsake card instead of a utility dialog. */
+.creation-backdrop { background: radial-gradient(circle at 50% 24%, rgb(70 105 65 / 35%), transparent 42%), #061109bf; backdrop-filter: blur(7px) saturate(1.08); }
+.creation-panel { width: min(100%, 560px); max-height: min(90vh, 760px); border-radius: 22px; background: linear-gradient(145deg, #193225f7, #102219f7 72%); box-shadow: 0 28px 90px #020905dd, inset 0 1px #f6edc51c; }
+.flower-detail-panel .creation-eyebrow { color: #cbd69c; }
+.flower-detail-panel h2 { font-size: clamp(30px, 5vw, 42px); letter-spacing: .02em; }
+.flower-memory-hero { display: grid; grid-template-columns: 120px 1fr; align-items: center; gap: 18px; margin: 20px 0 14px; padding: 18px 20px; border: 1px solid #e7ddaa45; border-radius: 16px; background: radial-gradient(circle at 25% 35%, #5b804541, transparent 42%), linear-gradient(135deg, #203c2b, #10251a); box-shadow: 0 14px 30px #06140d55; }
+.flower-memory-aura { display: grid; place-items: center; width: 105px; height: 105px; border: 1px solid #dfd79166; border-radius: 50%; background: radial-gradient(circle, #d9d37d28 0 28%, transparent 29%), repeating-radial-gradient(circle, transparent 0 11px, #e9de9b14 12px 13px); }
+.flower-memory-hero .flower-detail-portrait { width: 96px; height: 86px; margin: 0; filter: drop-shadow(0 7px 5px #030b07aa); }
+.flower-memory-labels span { color: #cbd69c; font: 700 10px system-ui, sans-serif; letter-spacing: .2em; }
+.flower-memory-labels .flower-detail-species { margin: 7px 0 0; color: #f4efd5; text-align: left; font: 400 22px Georgia, "Songti SC", serif; letter-spacing: .06em; }
+.flower-detail-panel .creation-result blockquote { position: relative; margin: 18px 0; padding: 20px 19px 18px; border: 1px solid #b9c78c4f; border-left: 3px solid #e4d17e; border-radius: 13px; color: #eceddc; background: linear-gradient(105deg, #0b1d15d9, #162c1ee8); box-shadow: inset 0 1px #ffffff0b; }
+.flower-detail-panel .creation-result blockquote span { display: block; margin: 0 0 8px; color: #c9d5a4; font: 700 10px system-ui, sans-serif; letter-spacing: .18em; text-transform: uppercase; }
+.flower-detail-panel .music-version-section { margin-top: 26px; padding: 22px 18px 18px; border: 1px solid #d9d1a945; border-radius: 17px; background: linear-gradient(145deg, #173225a6, #0b1b14a6); box-shadow: inset 0 1px #ffffff0b; }
+.flower-detail-panel .music-version-heading h3 { font-size: 25px; }
+.flower-detail-panel .music-revise-button { padding: 9px 15px; border: 1px solid #eadc9b8c; border-radius: 999px; color: #263520; background: linear-gradient(135deg, #f1e6aa, #d7d68d); box-shadow: 0 5px 0 #98945d, 0 8px 15px #07140d55; font: 700 13px system-ui, sans-serif; transition: transform .18s ease, box-shadow .18s ease; }
+.flower-detail-panel .music-revise-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 0 #98945d, 0 11px 18px #07140d55; }
+.flower-detail-panel .music-version-list { gap: 10px; margin: 18px 0; }
+.flower-detail-panel .music-version-item { grid-template-columns: 74px minmax(0, 1fr) 82px; gap: 9px; padding: 11px 12px; border-color: #9cac8a4d; border-radius: 13px; background: #0a1912a8; transition: transform .18s ease, border-color .18s ease, background .18s ease; }
+.flower-detail-panel .music-version-item:hover { transform: translateY(-2px); border-color: #d9d1a999; background: #193225; }
+.flower-detail-panel .music-version-item.is-selected { border-color: #dfdc9cad; background: linear-gradient(105deg, #304734, #213b2a); box-shadow: inset 3px 0 #e7d87f; }
+.flower-detail-panel .music-version-item strong { font-size: 16px; }
+.flower-detail-panel .music-version-item small { padding: 3px 6px; border-radius: 999px; background: #e7df9e; }
+.flower-detail-panel .music-version-status { color: #dce4c3; }
+.flower-detail-panel .creation-audio button { padding: 11px 21px; border: 1px solid #f2e6ac; border-radius: 999px; color: #fff9dc; background: linear-gradient(135deg, #294b35, #13281d); box-shadow: 0 5px 0 #0a1710, 0 8px 18px #06120966; font-weight: 700; }
+.flower-detail-panel .music-companion-card { padding: 19px; border-radius: 15px; background: radial-gradient(circle at 100% 0, #607e402e, transparent 38%), #0a1812d1; box-shadow: inset 0 1px #ffffff0b; }
+@media (max-width: 560px) { .flower-memory-hero { grid-template-columns: 90px 1fr; padding: 14px; gap: 12px; } .flower-memory-aura { width: 82px; height: 82px; } .flower-memory-hero .flower-detail-portrait { width: 78px; height: 70px; } .flower-detail-panel .music-version-item { grid-template-columns: 63px minmax(0, 1fr) 70px; padding: 9px; } }
