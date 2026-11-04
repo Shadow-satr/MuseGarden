@@ -30,7 +30,7 @@ describe("Grid terrain map", () => {
       count += 1;
     }
     expect(count).toBe(TERRAIN_COLUMNS * TERRAIN_ROWS);
-    expect(seen).toEqual(new Set<TerrainType>(["GRASS", "PATH", "WATER", "SOIL", "STRUCTURE", "BRIDGE"]));
+    expect(seen).toEqual(new Set<TerrainType>(["GRASS", "PATH", "WATER", "SOIL", "STRUCTURE", "BRIDGE", "TREE"]));
   });
 
   it("keeps NW and SE continuous while the other fields retain six soil patches", () => {
@@ -47,11 +47,13 @@ describe("Grid terrain map", () => {
     }
   });
 
-  it("keeps water and structures blocked while paths, bridges and soil are walkable", () => {
+  it("keeps water, structures and tree groves blocked while paths, bridges and soil are walkable", () => {
     expect(MUSE_GARDEN_TERRAIN.terrainAt(3, 0)).toBe("WATER");
     expect(MUSE_GARDEN_TERRAIN.terrainAt(46, 60)).toBe("BRIDGE");
     expect(isWalkableWorldPosition(3 * 16 + 8, 8)).toBe(false);
     expect(isWalkableWorldPosition(42 * 16 + 8, 7 * 16 + 8)).toBe(false);
+    expect(MUSE_GARDEN_TERRAIN.terrainAt(18, 7)).toBe("TREE");
+    expect(isWalkableWorldPosition(18 * 16 + 8, 7 * 16 + 8)).toBe(false);
     expect(isWalkableWorldPosition(46 * 16 + 8, 60 * 16 + 8)).toBe(true);
     expect(isWalkableWorldPosition(FARM_PLOTS[0].slots[0].centerX, FARM_PLOTS[0].slots[0].centerY)).toBe(true);
   });

@@ -59,7 +59,7 @@ export function terrainBoundaryEdgesAt(
     .map(({ name }) => name);
 }
 
-function regionsFor(map: TerrainMap, terrain: "BRIDGE" | "STRUCTURE"): readonly TerrainRegion[] {
+function regionsFor(map: TerrainMap, terrain: TerrainType): readonly TerrainRegion[] {
   const cells = new Set(
     [...map.entries()]
       .filter((entry) => entry.terrain === terrain)
@@ -131,6 +131,11 @@ function drawTerrainTransitions(graphics: Graphics, map: TerrainMap): void {
         if (direction === "N") graphics.moveTo(x + 2, y + 2).lineTo(x + size - 2, y + 2).stroke({ color: "#e1c585", alpha: .58, width: 1 });
         if (direction === "W") graphics.moveTo(x + 2, y + 2).lineTo(x + 2, y + size - 2).stroke({ color: "#e1c585", alpha: .42, width: 1 });
       }
+      // The road's pebbles follow its grid rhythm rather than appearing in unrelated terrain.
+      if ((column * 3 + row) % 5 === 0) {
+        graphics.circle(x + size * .36, y + size * .62, 1).fill({ color: "#ead08c", alpha: .7 });
+        graphics.circle(x + size * .7, y + size * .35, .8).fill({ color: "#8f6844", alpha: .6 });
+      }
     }
     if (terrain === "SOIL") {
       for (const direction of terrainEdgesAt(map, "SOIL", column, row)) {
@@ -141,20 +146,8 @@ function drawTerrainTransitions(graphics: Graphics, map: TerrainMap): void {
   }
 }
 
-function drawTree(graphics: Graphics, column: number, row: number, scale = 1): void {
-  const x = column * 16;
-  const y = row * 16;
-  graphics.ellipse(x + 10 * scale, y + 15 * scale, 9 * scale, 3 * scale).fill({ color: "#193825", alpha: .5 });
-  graphics.rect(x + 8 * scale, y + 8 * scale, 4 * scale, 8 * scale).fill("#64452f");
-  graphics.circle(x + 7 * scale, y + 7 * scale, 6 * scale).fill("#315d39");
-  graphics.circle(x + 13 * scale, y + 6 * scale, 6 * scale).fill("#376e40");
-  graphics.circle(x + 10 * scale, y + 3 * scale, 6 * scale).fill("#4f874b");
-  graphics.circle(x + 7 * scale, y + 5 * scale, 2 * scale).fill({ color: "#8cbb68", alpha: .6 });
-}
-
 function drawGardenLandmarks(graphics: Graphics): void {
-  // Curated clusters give the island recognisable destinations without changing collision data.
-  [[16, 14, 1.1], [18, 16, .85], [74, 23, 1], [76, 25, .8], [13, 44, 1], [16, 47, .8], [73, 46, 1.1], [78, 50, .8], [33, 10, .9], [72, 10, .85]].forEach(([column, row, scale]) => drawTree(graphics, column, row, scale));
+  // Low flower beds are walkable scenery; the real tree groves use TREE terrain.
   [[18, 29], [32, 24], [39, 20], [54, 21], [72, 33], [33, 48], [53, 55], [70, 39]].forEach(([column, row]) => {
     const x = column * 16;
     const y = row * 16;
@@ -163,6 +156,25 @@ function drawGardenLandmarks(graphics: Graphics): void {
     graphics.circle(x + 10, y + 5, 2).fill("#e59bb0");
     graphics.circle(x + 11, y + 10, 2).fill("#d8e18a");
   });
+}
+
+function drawTreeRegion(graphics: Graphics, map: TerrainMap, region: TerrainRegion): void {
+  const size = map.cellSize;
+  const left = region.minColumn * size;
+  const top = region.minRow * size;
+  const width = (region.maxColumn - region.minColumn + 1) * size;
+  const height = (region.maxRow - region.minRow + 1) * size;
+  const centreX = left + width / 2;
+  const canopyY = top + height * .45;
+  const radius = Math.min(width, height);
+  graphics.ellipse(centreX, top + height - 4, width * .57, height * .18).fill({ color: "#142d1e", alpha: .55 });
+  graphics.rect(centreX - 4, canopyY, 8, height * .52).fill("#67442f");
+  graphics.rect(centreX - 2, canopyY, 2, height * .5).fill("#b2794b");
+  for (const [offsetX, offsetY, scale] of [[-.34, .24, .34], [0, .12, .42], [.32, .27, .33], [-.18, -.08, .34], [.2, -.08, .34]] as const) {
+    graphics.circle(centreX + width * offsetX, canopyY + height * offsetY, radius * scale).fill("#285b37");
+    graphics.circle(centreX + width * (offsetX - .04), canopyY + height * (offsetY - .04), radius * scale * .72).fill("#3d7b45");
+  }
+  graphics.circle(centreX - width * .18, canopyY - height * .05, radius * .12).fill({ color: "#83ae5c", alpha: .72 });
 }
 
 function drawBridgeRegion(graphics: Graphics, map: TerrainMap, region: TerrainRegion): void {
@@ -186,11 +198,19 @@ function drawBridgeRegion(graphics: Graphics, map: TerrainMap, region: TerrainRe
       graphics.moveTo(x, top + 1).lineTo(x, top + height - 1).stroke({ color: TERRAIN_FEATURE_COLORS.bridgePlank, width: 1 });
     }
     graphics.moveTo(left + 1, top + 2).lineTo(left + width - 1, top + 2).stroke({ color: TERRAIN_FEATURE_COLORS.bridgeHighlight, width: 1 });
+    for (let x = left + 5; x < left + width; x += 24) {
+      graphics.rect(x, top + 1, 2, 3).fill("#5b3727");
+      graphics.rect(x, top + height - 4, 2, 3).fill("#5b3727");
+    }
   } else {
     for (let y = top + 6; y < top + height; y += 6) {
       graphics.moveTo(left + 1, y).lineTo(left + width - 1, y).stroke({ color: TERRAIN_FEATURE_COLORS.bridgePlank, width: 1 });
     }
     graphics.moveTo(left + 2, top + 1).lineTo(left + 2, top + height - 1).stroke({ color: TERRAIN_FEATURE_COLORS.bridgeHighlight, width: 1 });
+    for (let y = top + 5; y < top + height; y += 24) {
+      graphics.rect(left + 1, y, 3, 2).fill("#5b3727");
+      graphics.rect(left + width - 4, y, 3, 2).fill("#5b3727");
+    }
   }
 }
 
@@ -229,19 +249,19 @@ function drawGardenDetails(graphics: Graphics, map: TerrainMap): void {
     const x = column * size;
     const y = row * size;
     if (terrain === "GRASS") {
-      if (hash % 13 === 0) {
+      if (hash % 7 === 0) {
         graphics
           .moveTo(x + size * .34, y + size * .73).lineTo(x + size * .44, y + size * .43)
           .moveTo(x + size * .48, y + size * .73).lineTo(x + size * .59, y + size * .36)
           .moveTo(x + size * .62, y + size * .73).lineTo(x + size * .69, y + size * .49)
           .stroke({ color: "#376f43", width: 1 });
       }
-      if (hash % 37 === 0) {
+      if (hash % 19 === 0) {
         graphics.circle(x + size * .5, y + size * .48, 1.2).fill("#f5d96c");
         graphics.circle(x + size * .38, y + size * .52, .9).fill("#f1c7cc");
         graphics.circle(x + size * .62, y + size * .52, .9).fill("#f1c7cc");
       }
-      if (hash % 53 === 0) {
+      if (hash % 29 === 0) {
         graphics.ellipse(x + size * .52, y + size * .67, 2.5, 1.5).fill("#829270");
       }
     }
@@ -250,6 +270,16 @@ function drawGardenDetails(graphics: Graphics, map: TerrainMap): void {
         .moveTo(x + size * .25, y + size * .45).lineTo(x + size * .66, y + size * .45)
         .moveTo(x + size * .4, y + size * .64).lineTo(x + size * .76, y + size * .64)
         .stroke({ color: "#9bc4d5", alpha: .5, width: 1 });
+    }
+    if (terrain === "WATER" && hash % 29 === 0) {
+      graphics.ellipse(x + size * .58, y + size * .56, 3.5, 1.8).fill("#6e9c62");
+      graphics.circle(x + size * .6, y + size * .43, 1.2).fill("#e8bbd0");
+    }
+    if (terrain === "WATER" && hash % 13 === 0 && waterBankEdgesAt(map, column, row).length > 0) {
+      graphics
+        .moveTo(x + size * .28, y + size * .82).lineTo(x + size * .35, y + size * .34)
+        .moveTo(x + size * .43, y + size * .82).lineTo(x + size * .5, y + size * .42)
+        .stroke({ color: "#416c40", width: 1.2 });
     }
     if (terrain === "SOIL") {
       for (let offset = 4; offset < size; offset += 5) {
@@ -270,6 +300,7 @@ export function createTerrainLayer(map: TerrainMap, textures: TerrainTextures): 
   const transitions = new Graphics();
   const bridges = new Graphics();
   const structures = new Graphics();
+  const trees = new Graphics();
   const landmarks = new Graphics();
   layer.label = "grid-terrain-map";
   grass.label = "mini-meadow-grass-tiles";
@@ -279,6 +310,7 @@ export function createTerrainLayer(map: TerrainMap, textures: TerrainTextures): 
   transitions.label = "terrain-transition-details";
   bridges.label = "pixel-wood-bridge-details";
   structures.label = "pixel-structure-details";
+  trees.label = "tree-grove-obstacles";
   landmarks.label = "garden-landmarks";
 
   for (const { column, row, terrain } of map.entries()) {
@@ -286,7 +318,7 @@ export function createTerrainLayer(map: TerrainMap, textures: TerrainTextures): 
     const y = row * map.cellSize;
     const width = Math.min(map.cellSize, map.width - x);
     const height = Math.min(map.cellSize, map.height - y);
-    if (terrain === "GRASS") {
+    if (terrain === "GRASS" || terrain === "TREE") {
       addTerrainSprite(grass, textures.grass[grassVariantAt(column, row)], x, y, width, height);
     } else if (terrain === "WATER") {
       addTerrainSprite(water, textures.water, x, y, width, height);
@@ -303,9 +335,10 @@ export function createTerrainLayer(map: TerrainMap, textures: TerrainTextures): 
   drawTerrainTransitions(transitions, map);
   for (const region of regionsFor(map, "BRIDGE")) drawBridgeRegion(bridges, map, region);
   for (const region of regionsFor(map, "STRUCTURE")) drawStructureRegion(structures, map, region);
+  for (const region of regionsFor(map, "TREE")) drawTreeRegion(trees, map, region);
   drawGardenLandmarks(landmarks);
   // Banks are above land textures for a consistently visible edge; bridges have no bank edge and remain uninterrupted.
-  layer.addChild(grass, water, graphics, paths, transitions, bridges, structures, waterBanks, landmarks);
+  layer.addChild(grass, water, graphics, paths, transitions, bridges, structures, waterBanks, trees, landmarks);
   return layer;
 }
 

@@ -8,6 +8,7 @@ export const TERRAIN_COLORS: Record<TerrainType, string> = {
   SOIL: "#74513c",
   STRUCTURE: "#625b53",
   BRIDGE: "#a97a4e",
+  TREE: "#285439",
 };
 
 /** Shared, restrained pixel-art palette for terrain features drawn with Pixi Graphics. */

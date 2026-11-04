@@ -49,14 +49,15 @@ describe("Mini Meadow terrain renderer", () => {
     const layer = createTerrainLayer(MUSE_GARDEN_TERRAIN, textures);
     const entries = [...MUSE_GARDEN_TERRAIN.entries()];
     const child = (label: string) => layer.children.find((entry) => entry.label === label);
-    expect(child("mini-meadow-grass-tiles")?.children).toHaveLength(entries.filter((entry) => entry.terrain === "GRASS").length);
+    expect(child("mini-meadow-grass-tiles")?.children).toHaveLength(entries.filter((entry) => entry.terrain === "GRASS" || entry.terrain === "TREE").length);
     expect(child("mini-meadow-water-tiles")?.children).toHaveLength(entries.filter((entry) => entry.terrain === "WATER").length);
     expect(child("mini-meadow-path-tiles")?.children).toHaveLength(entries.filter((entry) => entry.terrain === "PATH").length);
     expect(child("pixel-wood-bridge-details")).toBeTruthy();
     expect(child("pixel-structure-details")).toBeTruthy();
     expect(child("uniform-water-bank-outlines")).toBeTruthy();
     expect(child("terrain-transition-details")).toBeTruthy();
+    expect(child("tree-grove-obstacles")).toBeTruthy();
     expect(child("garden-landmarks")).toBeTruthy();
-    expect(layer.children).toHaveLength(9);
+    expect(layer.children).toHaveLength(10);
   });
 });

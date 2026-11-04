@@ -5,7 +5,7 @@ export const TERRAIN_CELL_SIZE = 16;
 export const TERRAIN_COLUMNS = Math.ceil(WORLD_WIDTH / TERRAIN_CELL_SIZE);
 export const TERRAIN_ROWS = Math.ceil(WORLD_HEIGHT / TERRAIN_CELL_SIZE);
 
-export type TerrainType = "GRASS" | "PATH" | "WATER" | "SOIL" | "STRUCTURE" | "BRIDGE";
+export type TerrainType = "GRASS" | "PATH" | "WATER" | "SOIL" | "STRUCTURE" | "BRIDGE" | "TREE";
 
 export interface TerrainMap {
   readonly width: number;
@@ -162,6 +162,14 @@ export function createMuseGardenTerrain(): TerrainMap {
   map.paint(45, 59, 4, 1, "PATH");
   map.paint(45, 60, 4, 8, "BRIDGE");
 
+  // Planted groves are real world obstacles, not decorative overlays. Their
+  // footprints deliberately sit on spare grass so they do not cover paths,
+  // water, fields, or building entrances.
+  for (const [column, row, width, height] of [
+    [17, 6, 3, 3], [31, 7, 3, 2], [75, 13, 3, 3],
+    [74, 27, 3, 3], [17, 44, 3, 3], [73, 43, 3, 3], [72, 53, 4, 3],
+  ] as const) map.paint(column, row, width, height, "TREE");
+
   return map;
 }
 
@@ -176,5 +184,5 @@ export function terrainAtWorldPosition(x: number, y: number): TerrainType {
 
 export function isWalkableWorldPosition(x: number, y: number): boolean {
   const terrain = terrainAtWorldPosition(x, y);
-  return terrain !== "WATER" && terrain !== "STRUCTURE";
+  return terrain !== "WATER" && terrain !== "STRUCTURE" && terrain !== "TREE";
 }

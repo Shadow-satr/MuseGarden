@@ -8,6 +8,7 @@ const LABELS: Array<[TerrainType, string]> = [
   ["SOIL", "种植位"],
   ["STRUCTURE", "建筑"],
   ["BRIDGE", "桥梁"],
+  ["TREE", "树丛"],
 ];
 
 export function MapOverview() {
