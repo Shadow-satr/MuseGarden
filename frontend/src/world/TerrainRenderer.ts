@@ -166,6 +166,48 @@ function drawStructureRegion(graphics: Graphics, map: TerrainMap, region: Terrai
   graphics.rect(entranceX, top + height - 3, 6, 3).fill(TERRAIN_FEATURE_COLORS.structureEntry);
 }
 
+/**
+ * Small deterministic details stop the large terrain fields from reading as a
+ * flat tile sheet. They live in the existing primitive layer so they remain
+ * crisp and do not add another texture or runtime dependency.
+ */
+function drawGardenDetails(graphics: Graphics, map: TerrainMap): void {
+  const size = map.cellSize;
+  for (const { column, row, terrain } of map.entries()) {
+    const hash = coordinateHash(column, row);
+    const x = column * size;
+    const y = row * size;
+    if (terrain === "GRASS") {
+      if (hash % 37 === 0) {
+        graphics
+          .moveTo(x + size * .34, y + size * .73).lineTo(x + size * .44, y + size * .43)
+          .moveTo(x + size * .48, y + size * .73).lineTo(x + size * .59, y + size * .36)
+          .moveTo(x + size * .62, y + size * .73).lineTo(x + size * .69, y + size * .49)
+          .stroke({ color: "#376f43", width: 1 });
+      }
+      if (hash % 113 === 0) {
+        graphics.circle(x + size * .5, y + size * .48, 1.2).fill("#f5d96c");
+        graphics.circle(x + size * .38, y + size * .52, .9).fill("#f1c7cc");
+        graphics.circle(x + size * .62, y + size * .52, .9).fill("#f1c7cc");
+      }
+      if (hash % 151 === 0) {
+        graphics.ellipse(x + size * .52, y + size * .67, 2.5, 1.5).fill("#829270");
+      }
+    }
+    if (terrain === "WATER" && hash % 17 === 0) {
+      graphics
+        .moveTo(x + size * .25, y + size * .45).lineTo(x + size * .66, y + size * .45)
+        .moveTo(x + size * .4, y + size * .64).lineTo(x + size * .76, y + size * .64)
+        .stroke({ color: "#9bc4d5", alpha: .5, width: 1 });
+    }
+    if (terrain === "SOIL") {
+      for (let offset = 4; offset < size; offset += 5) {
+        graphics.moveTo(x + 2, y + offset).lineTo(x + size - 2, y + offset - 1).stroke({ color: "#5e4031", alpha: .55, width: 1 });
+      }
+    }
+  }
+}
+
 /** Draws GRASS, PATH and WATER as Mini Meadow textures; other terrain remains a Pixi primitive. */
 export function createTerrainLayer(map: TerrainMap, textures: TerrainTextures): Container {
   const layer = new Container();
@@ -202,6 +244,7 @@ export function createTerrainLayer(map: TerrainMap, textures: TerrainTextures): 
       graphics.rect(x, y, width, height).fill(TERRAIN_COLORS[terrain]);
     }
   }
+  drawGardenDetails(graphics, map);
   for (const region of regionsFor(map, "BRIDGE")) drawBridgeRegion(bridges, map, region);
   for (const region of regionsFor(map, "STRUCTURE")) drawStructureRegion(structures, map, region);
   // Banks are above land textures for a consistently visible edge; bridges have no bank edge and remain uninterrupted.

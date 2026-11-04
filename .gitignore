@@ -13,6 +13,9 @@ __pycache__/
 /tmp*
 /.build-temp/
 /frontend/.build-temp/
+/frontend/.test-tmp/
+/frontend/visual-preview.out.log
+/frontend/visual-preview.err.log
 
 # Frontend build output and incremental compiler state
 /frontend/dist/
