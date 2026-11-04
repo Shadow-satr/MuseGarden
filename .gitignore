@@ -39,6 +39,10 @@ __pycache__/
 /development/http-rename-verification/
 /development/http-rename-verification-2/
 
+# Temporary output from the local GitHub Pages preview server.
+/docs/pages-preview.out.log
+/docs/pages-preview.err.log
+
 # Credentials remain local; an explicitly named example file may be committed.
 .env
 .env.*
