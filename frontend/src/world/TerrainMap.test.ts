@@ -52,8 +52,8 @@ describe("Grid terrain map", () => {
     expect(MUSE_GARDEN_TERRAIN.terrainAt(46, 60)).toBe("BRIDGE");
     expect(isWalkableWorldPosition(3 * 16 + 8, 8)).toBe(false);
     expect(isWalkableWorldPosition(42 * 16 + 8, 7 * 16 + 8)).toBe(false);
-    expect(MUSE_GARDEN_TERRAIN.terrainAt(18, 7)).toBe("TREE");
-    expect(isWalkableWorldPosition(18 * 16 + 8, 7 * 16 + 8)).toBe(false);
+    expect(MUSE_GARDEN_TERRAIN.terrainAt(17, 6)).toBe("TREE");
+    expect(isWalkableWorldPosition(17 * 16 + 8, 6 * 16 + 8)).toBe(false);
     expect(isWalkableWorldPosition(46 * 16 + 8, 60 * 16 + 8)).toBe(true);
     expect(isWalkableWorldPosition(FARM_PLOTS[0].slots[0].centerX, FARM_PLOTS[0].slots[0].centerY)).toBe(true);
   });

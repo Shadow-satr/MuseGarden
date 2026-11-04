@@ -131,7 +131,27 @@ function drawTerrainTransitions(graphics: Graphics, map: TerrainMap): void {
         if (direction === "N") graphics.moveTo(x + 2, y + 2).lineTo(x + size - 2, y + 2).stroke({ color: "#e1c585", alpha: .58, width: 1 });
         if (direction === "W") graphics.moveTo(x + 2, y + 2).lineTo(x + 2, y + size - 2).stroke({ color: "#e1c585", alpha: .42, width: 1 });
       }
-      // The road's pebbles follow its grid rhythm rather than appearing in unrelated terrain.
+      const hasWest = map.terrainAt(column - 1, row) === "PATH";
+      const hasEast = map.terrainAt(column + 1, row) === "PATH";
+      const hasNorth = map.terrainAt(column, row - 1) === "PATH";
+      const hasSouth = map.terrainAt(column, row + 1) === "PATH";
+      // Gentle wheel-worn tracks make long stretches read as a path rather than
+      // a flat tiled stripe. At junctions the quieter central marks take over.
+      if (hasWest && hasEast && !(hasNorth && hasSouth)) {
+        for (const trackY of [.34, .68]) {
+          graphics.moveTo(x + 1, y + size * trackY).lineTo(x + size - 1, y + size * trackY)
+            .stroke({ color: "#a9784f", alpha: .34, width: 1 });
+        }
+      } else if (hasNorth && hasSouth && !(hasWest && hasEast)) {
+        for (const trackX of [.34, .68]) {
+          graphics.moveTo(x + size * trackX, y + 1).lineTo(x + size * trackX, y + size - 1)
+            .stroke({ color: "#a9784f", alpha: .34, width: 1 });
+        }
+      } else if ((hasWest || hasEast) && (hasNorth || hasSouth)) {
+        graphics.circle(x + size * .5, y + size * .5, 1.1).fill({ color: "#b98759", alpha: .34 });
+      }
+      // Pebbles remain a path-only detail; fields, grass, water and structures
+      // never inherit this decoration.
       if ((column * 3 + row) % 5 === 0) {
         graphics.circle(x + size * .36, y + size * .62, 1).fill({ color: "#ead08c", alpha: .7 });
         graphics.circle(x + size * .7, y + size * .35, .8).fill({ color: "#8f6844", alpha: .6 });
@@ -146,35 +166,39 @@ function drawTerrainTransitions(graphics: Graphics, map: TerrainMap): void {
   }
 }
 
-function drawGardenLandmarks(graphics: Graphics): void {
-  // Low flower beds are walkable scenery; the real tree groves use TREE terrain.
-  [[18, 29], [32, 24], [39, 20], [54, 21], [72, 33], [33, 48], [53, 55], [70, 39]].forEach(([column, row]) => {
-    const x = column * 16;
-    const y = row * 16;
-    graphics.circle(x + 8, y + 8, 5).fill("#3f7543");
-    graphics.circle(x + 5, y + 6, 2).fill("#edc870");
-    graphics.circle(x + 10, y + 5, 2).fill("#e59bb0");
-    graphics.circle(x + 11, y + 10, 2).fill("#d8e18a");
-  });
-}
-
 function drawTreeRegion(graphics: Graphics, map: TerrainMap, region: TerrainRegion): void {
   const size = map.cellSize;
   const left = region.minColumn * size;
   const top = region.minRow * size;
   const width = (region.maxColumn - region.minColumn + 1) * size;
   const height = (region.maxRow - region.minRow + 1) * size;
-  const centreX = left + width / 2;
-  const canopyY = top + height * .45;
-  const radius = Math.min(width, height);
-  graphics.ellipse(centreX, top + height - 4, width * .57, height * .18).fill({ color: "#142d1e", alpha: .55 });
-  graphics.rect(centreX - 4, canopyY, 8, height * .52).fill("#67442f");
-  graphics.rect(centreX - 2, canopyY, 2, height * .5).fill("#b2794b");
-  for (const [offsetX, offsetY, scale] of [[-.34, .24, .34], [0, .12, .42], [.32, .27, .33], [-.18, -.08, .34], [.2, -.08, .34]] as const) {
-    graphics.circle(centreX + width * offsetX, canopyY + height * offsetY, radius * scale).fill("#285b37");
-    graphics.circle(centreX + width * (offsetX - .04), canopyY + height * (offsetY - .04), radius * scale * .72).fill("#3d7b45");
+  const variant = coordinateHash(region.minColumn, region.minRow) % 3;
+  const palette = [
+    { shade: "#1b422c", base: "#2f6839", light: "#53914a" },
+    { shade: "#214a30", base: "#386f3d", light: "#6ba44f" },
+    { shade: "#173b2a", base: "#2b5c35", light: "#4d8542" },
+  ][variant];
+  const trees = width <= size && height <= size
+    ? [[left + width / 2, top + height * .82, .7]]
+    : width <= size * 2 && height <= size * 2
+      ? [[left + width * .46, top + height * .84, 1.08]]
+      : [
+          [left + width * .28, top + height * .86, .86],
+          [left + width * .59, top + height * .8, 1.16],
+          [left + width * .82, top + height * .88, .72],
+        ];
+  for (const [centreX, rootY, scale] of trees) {
+    const crownRadius = Math.min(size * 1.05, 8 * scale);
+    const trunkWidth = Math.max(2, Math.round(3 * scale));
+    graphics.ellipse(centreX, rootY + 1, crownRadius * 1.05, 2.2).fill({ color: "#142d1e", alpha: .55 });
+    const crownY = rootY - crownRadius * 1.05;
+    graphics.circle(centreX - crownRadius * .46, crownY + crownRadius * .34, crownRadius * .68).fill(palette.shade);
+    graphics.circle(centreX + crownRadius * .46, crownY + crownRadius * .36, crownRadius * .66).fill(palette.shade);
+    graphics.circle(centreX, crownY, crownRadius * .83).fill(palette.base);
+    graphics.circle(centreX - crownRadius * .24, crownY - crownRadius * .17, crownRadius * .44).fill(palette.light);
+    graphics.rect(centreX - trunkWidth / 2, crownY + crownRadius * .52, trunkWidth, rootY - (crownY + crownRadius * .52)).fill("#67442f");
+    graphics.rect(centreX - trunkWidth / 2 + 1, crownY + crownRadius * .57, 1, rootY - (crownY + crownRadius * .57)).fill("#b2794b");
   }
-  graphics.circle(centreX - width * .18, canopyY - height * .05, radius * .12).fill({ color: "#83ae5c", alpha: .72 });
 }
 
 function drawBridgeRegion(graphics: Graphics, map: TerrainMap, region: TerrainRegion): void {
@@ -229,12 +253,36 @@ function drawStructureRegion(graphics: Graphics, map: TerrainMap, region: Terrai
   const top = region.minRow * size;
   const width = (region.maxColumn - region.minColumn + 1) * size;
   const height = (region.maxRow - region.minRow + 1) * size;
-  graphics.rect(left + 2, top + 2, width - 4, Math.max(2, Math.floor(height / 3))).fill(TERRAIN_FEATURE_COLORS.structureRoofLight);
-  for (let y = top + 8; y < top + height - 3; y += 8) {
-    graphics.moveTo(left + 2, y).lineTo(left + width - 2, y).stroke({ color: TERRAIN_FEATURE_COLORS.structureRoofShade, width: 1 });
+  const roofBottom = top + Math.floor(height * .57);
+  // Kenney Tiny Town's CC0 palette informed this warmer cottage treatment:
+  // a tiled slate roof, terracotta walls, framed windows, and a visible door.
+  // A stepped gable gives large collision footprints a friendly house silhouette,
+  // instead of exposing one large rectangular roof slab.
+  const roofTiers = 5;
+  const tierHeight = Math.max(4, Math.floor((roofBottom - top - 4) / roofTiers));
+  for (let tier = 0; tier < roofTiers; tier += 1) {
+    const inset = Math.max(4, Math.floor(width * (.09 + (roofTiers - tier - 1) * .055)));
+    const y = top + 3 + tier * tierHeight;
+    const tierWidth = width - inset * 2;
+    graphics.rect(left + inset, y, tierWidth, tierHeight + 1).fill(tier % 2 === 0 ? "#516477" : "#5e7181");
+    graphics.moveTo(left + inset + 2, y + 2).lineTo(left + inset + tierWidth - 2, y + 2).stroke({ color: "#92a8b6", alpha: .55, width: 1 });
+    for (let x = left + inset + 5 + ((tier % 2) * 3); x < left + inset + tierWidth - 3; x += 8) graphics.rect(x, y + tierHeight - 1, 2, 1).fill("#354857");
   }
-  const entranceX = left + Math.floor(width / 2) - 3;
-  graphics.rect(entranceX, top + height - 3, 6, 3).fill(TERRAIN_FEATURE_COLORS.structureEntry);
+  graphics.rect(left + 3, roofBottom - 2, width - 6, 4).fill("#384957");
+  graphics.rect(left + 2, roofBottom, width - 4, height - (roofBottom - top) - 2).fill("#b96d44");
+  graphics.rect(left + 2, roofBottom, width - 4, 2).fill("#e0a06b");
+  const chimneyX = left + Math.floor(width * .72);
+  graphics.rect(chimneyX, top + 4, 7, Math.max(9, height * .28)).fill("#8d5641");
+  graphics.rect(chimneyX - 1, top + 3, 9, 3).fill("#e0a06b");
+  const entranceX = left + Math.floor(width / 2) - 4;
+  graphics.rect(entranceX, top + height - 9, 8, 7).fill("#5b382c");
+  graphics.rect(entranceX + 1, top + height - 8, 2, 5).fill("#9c6242");
+  for (const windowX of [left + 6, left + width - 10]) {
+    if (Math.abs(windowX - entranceX) < 8) continue;
+    graphics.rect(windowX, roofBottom + 4, 4, 4).fill("#253848");
+    graphics.rect(windowX + 1, roofBottom + 5, 2, 2).fill("#9fd2db");
+  }
+  graphics.rect(left + 3, top + height - 2, width - 6, 2).fill("#6d4030");
 }
 
 /**
@@ -284,6 +332,7 @@ function drawGardenDetails(graphics: Graphics, map: TerrainMap): void {
     if (terrain === "SOIL") {
       for (let offset = 4; offset < size; offset += 5) {
         graphics.moveTo(x + 2, y + offset).lineTo(x + size - 2, y + offset - 1).stroke({ color: "#5e4031", alpha: .55, width: 1 });
+        graphics.moveTo(x + 3, y + offset + 1).lineTo(x + size - 4, y + offset).stroke({ color: "#9a6748", alpha: .22, width: 1 });
       }
     }
   }
@@ -301,7 +350,6 @@ export function createTerrainLayer(map: TerrainMap, textures: TerrainTextures): 
   const bridges = new Graphics();
   const structures = new Graphics();
   const trees = new Graphics();
-  const landmarks = new Graphics();
   layer.label = "grid-terrain-map";
   grass.label = "mini-meadow-grass-tiles";
   water.label = "mini-meadow-water-tiles";
@@ -311,7 +359,6 @@ export function createTerrainLayer(map: TerrainMap, textures: TerrainTextures): 
   bridges.label = "pixel-wood-bridge-details";
   structures.label = "pixel-structure-details";
   trees.label = "tree-grove-obstacles";
-  landmarks.label = "garden-landmarks";
 
   for (const { column, row, terrain } of map.entries()) {
     const x = column * map.cellSize;
@@ -336,9 +383,8 @@ export function createTerrainLayer(map: TerrainMap, textures: TerrainTextures): 
   for (const region of regionsFor(map, "BRIDGE")) drawBridgeRegion(bridges, map, region);
   for (const region of regionsFor(map, "STRUCTURE")) drawStructureRegion(structures, map, region);
   for (const region of regionsFor(map, "TREE")) drawTreeRegion(trees, map, region);
-  drawGardenLandmarks(landmarks);
   // Banks are above land textures for a consistently visible edge; bridges have no bank edge and remain uninterrupted.
-  layer.addChild(grass, water, graphics, paths, transitions, bridges, structures, waterBanks, trees, landmarks);
+  layer.addChild(grass, water, graphics, paths, transitions, bridges, structures, waterBanks, trees);
   return layer;
 }
 

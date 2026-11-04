@@ -57,7 +57,6 @@ describe("Mini Meadow terrain renderer", () => {
     expect(child("uniform-water-bank-outlines")).toBeTruthy();
     expect(child("terrain-transition-details")).toBeTruthy();
     expect(child("tree-grove-obstacles")).toBeTruthy();
-    expect(child("garden-landmarks")).toBeTruthy();
-    expect(layer.children).toHaveLength(10);
+    expect(layer.children).toHaveLength(9);
   });
 });

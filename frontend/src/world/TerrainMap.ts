@@ -166,8 +166,10 @@ export function createMuseGardenTerrain(): TerrainMap {
   // footprints deliberately sit on spare grass so they do not cover paths,
   // water, fields, or building entrances.
   for (const [column, row, width, height] of [
-    [17, 6, 3, 3], [31, 7, 3, 2], [75, 13, 3, 3],
-    [74, 27, 3, 3], [17, 44, 3, 3], [73, 43, 3, 3], [72, 53, 4, 3],
+    // Isolated saplings, medium trees, and contiguous groves intentionally vary in scale.
+    [17, 6, 1, 1], [20, 8, 2, 2], [31, 7, 3, 2], [75, 13, 2, 2],
+    [74, 27, 1, 1], [77, 27, 2, 3], [17, 44, 1, 1], [19, 46, 2, 2],
+    [73, 43, 3, 3], [72, 53, 1, 1], [75, 53, 3, 3],
   ] as const) map.paint(column, row, width, height, "TREE");
 
   return map;
