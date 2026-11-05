@@ -53,7 +53,7 @@ MuseGarden 的完整运行依赖本地 Ollama、ACE-Step 和 Python 服务，因
 3. 明确说明“完整体验需要在 Windows 本地按使用说明启动”；
 4. 将公开地址填写到仓库首页和最终报告中。
 
-当前静态介绍页已存放在主仓库 `docs/pages/index.html`，内容包括项目简介、实际界面截图、源码链接和本地运行步骤；尚待选择并启用静态托管平台。
+项目介绍页已发布于 [GitHub Pages](https://shadow-satr.github.io/MuseGarden/)，源码位于 `docs/index.html`。完整应用仍需按运行说明启动本地服务。
 
 这样既满足“可访问的发布入口和使用说明”，又不会虚构云端 AI 音乐服务。
 
