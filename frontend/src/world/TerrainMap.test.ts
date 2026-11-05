@@ -51,7 +51,8 @@ describe("Grid terrain map", () => {
     expect(MUSE_GARDEN_TERRAIN.terrainAt(3, 0)).toBe("WATER");
     expect(MUSE_GARDEN_TERRAIN.terrainAt(46, 60)).toBe("BRIDGE");
     expect(isWalkableWorldPosition(3 * 16 + 8, 8)).toBe(false);
-    expect(isWalkableWorldPosition(42 * 16 + 8, 7 * 16 + 8)).toBe(false);
+    expect(isWalkableWorldPosition(48 * 16 + 8, 7 * 16 + 8)).toBe(false);
+    expect(isWalkableWorldPosition(41 * 16 + 2, 6 * 16 + 2)).toBe(true);
     expect(MUSE_GARDEN_TERRAIN.terrainAt(17, 6)).toBe("TREE");
     expect(isWalkableWorldPosition(17 * 16 + 8, 6 * 16 + 8)).toBe(false);
     expect(isWalkableWorldPosition(46 * 16 + 8, 60 * 16 + 8)).toBe(true);

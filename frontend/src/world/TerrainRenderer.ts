@@ -1,7 +1,7 @@
 import { Container, Graphics, Sprite, type Texture } from "pixi.js";
 
 import { TERRAIN_COLORS, TERRAIN_FEATURE_COLORS } from "./TerrainColors";
-import type { TerrainMap, TerrainType } from "./TerrainMap";
+import { treeShapes, type TerrainMap, type TerrainType } from "./TerrainMap";
 import type { TerrainTextures } from "./TerrainTextures";
 
 const WATER_BANK_OUTLINE = 0x1e1c28;
@@ -178,18 +178,10 @@ function drawTreeRegion(graphics: Graphics, map: TerrainMap, region: TerrainRegi
     { shade: "#214a30", base: "#386f3d", light: "#6ba44f" },
     { shade: "#173b2a", base: "#2b5c35", light: "#4d8542" },
   ][variant];
-  const trees = width <= size && height <= size
-    ? [[left + width / 2, top + height * .82, .7]]
-    : width <= size * 2 && height <= size * 2
-      ? [[left + width * .46, top + height * .84, 1.08]]
-      : [
-          [left + width * .28, top + height * .86, .86],
-          [left + width * .59, top + height * .8, 1.16],
-          [left + width * .82, top + height * .88, .72],
-        ];
-  for (const [centreX, rootY, scale] of trees) {
-    const crownRadius = Math.min(size * 1.05, 8 * scale);
-    const trunkWidth = Math.max(2, Math.round(3 * scale));
+  // One connected footprint represents one tree, including large trees.
+  const trees = treeShapes(region.minColumn, region.minRow, width / size, height / size);
+  for (const { x: centreX, rootY, radius: crownRadius } of trees) {
+    const trunkWidth = Math.max(2, Math.round(crownRadius * .5));
     graphics.ellipse(centreX, rootY + 1, crownRadius * 1.05, 2.2).fill({ color: "#142d1e", alpha: .55 });
     const crownY = rootY - crownRadius * 1.05;
     graphics.circle(centreX - crownRadius * .46, crownY + crownRadius * .34, crownRadius * .68).fill(palette.shade);
@@ -240,14 +232,6 @@ function drawBridgeRegion(graphics: Graphics, map: TerrainMap, region: TerrainRe
 
 function drawStructureRegion(graphics: Graphics, map: TerrainMap, region: TerrainRegion): void {
   const size = map.cellSize;
-  for (const { column, row } of region.cells) {
-    const x = column * size;
-    const y = row * size;
-    graphics.rect(x, y, size, size).fill(TERRAIN_FEATURE_COLORS.structureRoof);
-    for (const edge of terrainBoundaryEdgesAt(map, "STRUCTURE", column, row)) {
-      drawBoundary(graphics, edge, x, y, size, TERRAIN_FEATURE_COLORS.structureOutline);
-    }
-  }
   if (!region.isRectangle) return;
   const left = region.minColumn * size;
   const top = region.minRow * size;
@@ -269,20 +253,24 @@ function drawStructureRegion(graphics: Graphics, map: TerrainMap, region: Terrai
     for (let x = left + inset + 5 + ((tier % 2) * 3); x < left + inset + tierWidth - 3; x += 8) graphics.rect(x, y + tierHeight - 1, 2, 1).fill("#354857");
   }
   graphics.rect(left + 3, roofBottom - 2, width - 6, 4).fill("#384957");
-  graphics.rect(left + 2, roofBottom, width - 4, height - (roofBottom - top) - 2).fill("#b96d44");
-  graphics.rect(left + 2, roofBottom, width - 4, 2).fill("#e0a06b");
+  graphics.rect(left + 8, roofBottom, width - 16, height - (roofBottom - top) - 5).fill("#e0be8a");
+  graphics.rect(left + 8, roofBottom, width - 16, 3).fill("#f1d9ae");
   const chimneyX = left + Math.floor(width * .72);
   graphics.rect(chimneyX, top + 4, 7, Math.max(9, height * .28)).fill("#8d5641");
   graphics.rect(chimneyX - 1, top + 3, 9, 3).fill("#e0a06b");
-  const entranceX = left + Math.floor(width / 2) - 4;
-  graphics.rect(entranceX, top + height - 9, 8, 7).fill("#5b382c");
-  graphics.rect(entranceX + 1, top + height - 8, 2, 5).fill("#9c6242");
-  for (const windowX of [left + 6, left + width - 10]) {
+  const entranceX = left + Math.floor(width / 2) - 7;
+  graphics.roundRect(entranceX, top + height - 25, 14, 20, 3).fill("#624637");
+  graphics.rect(entranceX + 2, top + height - 22, 4, 15).fill("#9c7350");
+  graphics.circle(entranceX + 11, top + height - 14, 1).fill("#eacb83");
+  for (const windowX of [left + width * .22, left + width * .7]) {
     if (Math.abs(windowX - entranceX) < 8) continue;
-    graphics.rect(windowX, roofBottom + 4, 4, 4).fill("#253848");
-    graphics.rect(windowX + 1, roofBottom + 5, 2, 2).fill("#9fd2db");
+    graphics.rect(windowX, roofBottom + 8, 14, 14).fill("#73503b");
+    graphics.rect(windowX + 2, roofBottom + 10, 10, 10).fill("#9fd2db");
+    graphics.rect(windowX + 6, roofBottom + 10, 2, 10).fill("#f3dcac");
+    graphics.rect(windowX + 2, roofBottom + 14, 10, 2).fill("#f3dcac");
+    graphics.rect(windowX - 1, roofBottom + 22, 16, 3).fill("#8a6244");
   }
-  graphics.rect(left + 3, top + height - 2, width - 6, 2).fill("#6d4030");
+  graphics.rect(left + 8, top + height - 5, width - 16, 2).fill("#6d4030");
 }
 
 /**
@@ -305,12 +293,15 @@ function drawGardenDetails(graphics: Graphics, map: TerrainMap): void {
           .stroke({ color: "#376f43", width: 1 });
       }
       if (hash % 19 === 0) {
-        graphics.circle(x + size * .5, y + size * .48, 1.2).fill("#f5d96c");
-        graphics.circle(x + size * .38, y + size * .52, .9).fill("#f1c7cc");
-        graphics.circle(x + size * .62, y + size * .52, .9).fill("#f1c7cc");
+        const flowerScale = .8 + ((hash >>> 9) % 3) * .35;
+        graphics.circle(x + size * .5, y + size * .48, 1.2 * flowerScale).fill("#f5d96c");
+        graphics.circle(x + size * .38, y + size * .52, .9 * flowerScale).fill("#f1c7cc");
+        graphics.circle(x + size * .62, y + size * .52, .9 * flowerScale).fill("#f1c7cc");
       }
       if (hash % 29 === 0) {
-        graphics.ellipse(x + size * .52, y + size * .67, 2.5, 1.5).fill("#829270");
+        const rockScale = 1 + ((hash >>> 8) % 3) * .6;
+        graphics.ellipse(x + size * .52, y + size * .67, 2.5 * rockScale, 1.5 * rockScale).fill("#829270");
+        graphics.ellipse(x + size * .48, y + size * .63, 1.2 * rockScale, .6 * rockScale).fill("#bac5a2");
       }
     }
     if (terrain === "WATER" && hash % 7 === 0) {
@@ -365,7 +356,7 @@ export function createTerrainLayer(map: TerrainMap, textures: TerrainTextures): 
     const y = row * map.cellSize;
     const width = Math.min(map.cellSize, map.width - x);
     const height = Math.min(map.cellSize, map.height - y);
-    if (terrain === "GRASS" || terrain === "TREE") {
+    if (terrain === "GRASS" || terrain === "TREE" || terrain === "STRUCTURE") {
       addTerrainSprite(grass, textures.grass[grassVariantAt(column, row)], x, y, width, height);
     } else if (terrain === "WATER") {
       addTerrainSprite(water, textures.water, x, y, width, height);

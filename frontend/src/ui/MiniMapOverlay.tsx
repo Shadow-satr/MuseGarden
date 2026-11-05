@@ -14,8 +14,8 @@ export function MiniMapOverlay({ playerPosition }: MiniMapOverlayProps) {
   return <div className="mini-map-backdrop" role="presentation">
     <section className="mini-map-panel" role="dialog" aria-modal="true" aria-label="Garden Map">
       <header className="mini-map-header">
-        <h2>Garden Map</h2>
-        <span>M / Esc 关闭</span>
+        <div><p className="mini-map-eyebrow">MUSEGARDEN · EXPLORATION</p><h2>花园地图 <small>Garden Map</small></h2></div>
+        <span className="mini-map-hint"><kbd>M</kbd> / <kbd>Esc</kbd> 关闭</span>
       </header>
       <svg className="mini-map-canvas" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="完整花园地图与玩家位置">
         {[...MUSE_GARDEN_TERRAIN.entries()].map(({ column, row, terrain }) => <rect
@@ -26,6 +26,12 @@ export function MiniMapOverlay({ playerPosition }: MiniMapOverlayProps) {
         />)}
         <circle className="mini-map-player" cx={x} cy={y} r={18} />
       </svg>
+      <div className="mini-map-footer" aria-label="地图图例">
+        <span><i style={{ backgroundColor: "#f4e477" }} />当前位置</span>
+        <span><i style={{ backgroundColor: TERRAIN_COLORS.SOIL }} />种植区域</span>
+        <span><i style={{ backgroundColor: TERRAIN_COLORS.PATH }} />道路</span>
+        <span><i style={{ backgroundColor: TERRAIN_COLORS.WATER }} />水域</span>
+      </div>
     </section>
   </div>;
 }

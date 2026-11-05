@@ -177,6 +177,25 @@ export function createMuseGardenTerrain(): TerrainMap {
 
 export const MUSE_GARDEN_TERRAIN = createMuseGardenTerrain();
 
+// Keep the rendering footprints as layout regions, while collision follows the
+// visible silhouettes inside them instead of blocking their empty corners.
+const OBSTACLE_REGIONS = [
+  { type: "STRUCTURE", column: 41, row: 6, width: 15, height: 9 },
+  { type: "STRUCTURE", column: 64, row: 6, width: 9, height: 8 },
+  ...[[17, 6, 1, 1], [20, 8, 2, 2], [31, 7, 3, 2], [75, 13, 2, 2],
+    [74, 27, 1, 1], [77, 27, 2, 3], [17, 44, 1, 1], [19, 46, 2, 2],
+    [73, 43, 3, 3], [72, 53, 1, 1], [75, 53, 3, 3]].map(([column, row, width, height]) => ({ type: "TREE", column, row, width, height })),
+] as const;
+
+export function treeShapes(column: number, row: number, columns: number, rows: number) {
+  const width = columns * 16, height = rows * 16;
+  const hash = (Math.imul(column + 17, 1103515245) ^ Math.imul(row + 31, 12345)) >>> 0;
+  const trees = hash % 3 === 1 && columns >= 3 && rows >= 2
+    ? [[width * .32, height * .86, .9], [width * .68, height * .9, 1.05]]
+    : [[width / 2, height * .88, Math.min(width, height) / 16]];
+  return trees.map(([x, y, scale]) => ({ x: column * 16 + x, rootY: row * 16 + y, radius: Math.min(width * .43, height * .37, 16 * .38 * scale) }));
+}
+
 export function terrainAtWorldPosition(x: number, y: number): TerrainType {
   return MUSE_GARDEN_TERRAIN.terrainAt(
     Math.floor(x / TERRAIN_CELL_SIZE),
@@ -185,6 +204,35 @@ export function terrainAtWorldPosition(x: number, y: number): TerrainType {
 }
 
 export function isWalkableWorldPosition(x: number, y: number): boolean {
+  for (const region of OBSTACLE_REGIONS) {
+    if (region.type !== "TREE") continue;
+    for (const tree of treeShapes(region.column, region.row, region.width, region.height)) {
+      const crownY = tree.rootY - tree.radius * 1.05;
+      const circles = [[tree.x - tree.radius * .46, crownY + tree.radius * .34, tree.radius * .68],
+        [tree.x + tree.radius * .46, crownY + tree.radius * .36, tree.radius * .66],
+        [tree.x, crownY, tree.radius * .83]];
+      if (circles.some(([cx, cy, radius]) => (x - cx) ** 2 + (y - cy) ** 2 <= radius ** 2)) return false;
+      if (Math.abs(x - tree.x) <= Math.max(2, tree.radius * .25) && y >= crownY && y <= tree.rootY) return false;
+    }
+  }
   const terrain = terrainAtWorldPosition(x, y);
-  return terrain !== "WATER" && terrain !== "STRUCTURE" && terrain !== "TREE";
+  if (terrain === "WATER") return false;
+  if (terrain === "TREE") return true;
+  if (terrain !== "STRUCTURE") return true;
+  const region = OBSTACLE_REGIONS.find((item) => item.type === terrain && x >= item.column * 16 && x < (item.column + item.width) * 16 && y >= item.row * 16 && y < (item.row + item.height) * 16);
+  if (!region) return false;
+  const localX = x - region.column * 16;
+  const localY = y - region.row * 16;
+  const width = region.width * 16;
+  const height = region.height * 16;
+  if (terrain === "STRUCTURE") {
+    const roofBottom = Math.floor(height * .57);
+    if (localY >= roofBottom - 2) return !(localX >= 3 && localX < width - 3 && localY < height - 3);
+    const tierHeight = Math.max(4, Math.floor((roofBottom - 4) / 5));
+    const tier = Math.floor((localY - 3) / tierHeight);
+    if (tier < 0 || tier >= 5) return true;
+    const inset = Math.max(4, Math.floor(width * (.09 + (4 - tier) * .055)));
+    return localX < inset || localX >= width - inset;
+  }
+  return true;
 }

@@ -33,7 +33,7 @@ export function CreationOverlay({ plantSpotId, status, result, error, onCancel, 
   };
 
   return <div className="creation-backdrop">
-    <section className="creation-panel" role="dialog" aria-modal="true" aria-labelledby="creation-title">
+    <section className="creation-panel memory-creation-panel" role="dialog" aria-modal="true" aria-labelledby="creation-title">
       <p className="creation-eyebrow">MUSEGARDEN · MEMORY</p>
       <h2 id="creation-title">留下一段记忆</h2>
       {result ? <div className="creation-result" role="status">
