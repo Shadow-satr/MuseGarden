@@ -67,6 +67,7 @@ export interface FlowerRenderSpec {
 export interface FlowerMemory {
   creation_id: string;
   text: string;
+  selected_blueprint?: Record<string, unknown> | null;
   flower: { artifact_id: string; species: string; size?: "small" | "large"; occupied_tiles?: [number, number][]; render_spec?: FlowerRenderSpec };
   planting: { record_id: string; x: number; y: number; placement_schema_version?: "legacy" | "terrain-v1"; flower_size?: "small" | "large"; occupied_tiles?: [number, number][] };
   music: { artifact_id: string; url: string; version?: number } | null;

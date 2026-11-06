@@ -45,6 +45,10 @@ body { background: #0a1510; }
 .flower-detail-panel { min-height: 300px; }
 .flower-detail-loading { margin: 54px 0; color: #dce7c8; text-align: center; font: 15px system-ui, sans-serif; }
 .flower-detail-species { margin: 4px 0 0; color: #c4cfa8; text-align: center; font: 12px system-ui, sans-serif; text-transform: capitalize; letter-spacing: .12em; }
+.blueprint-details { margin: 24px 0; padding: 18px 20px; border: 1px solid #71826588; border-radius: 16px; background: #0e1d15; color: #e9edd6; }
+.blueprint-details summary { cursor: pointer; font-weight: 700; color: #eee7ab; }
+.blueprint-details p { color: #c3cfb9; font-size: 0.9rem; }
+.blueprint-details pre { overflow: auto; max-height: 360px; padding: 16px; border-radius: 10px; background: #0a1710; font: 0.82rem/1.6 monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
 .flower-detail-error { margin-top: 28px; }
 .music-version-section { margin-top: 24px; padding-top: 20px; border-top: 1px solid #d9d1a933; }
 .music-version-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }

@@ -138,6 +138,7 @@ def test_music_regeneration_keeps_flower_and_planting_unchanged(tmp_path: Path) 
     assert updated["music"]["artifact_id"] != original["music"]["artifact_id"]
     assert client.specs[-1].bpm == 92
     assert updated["blueprint"]["tempo"] == 92
+    assert updated["selected_blueprint"]["tempo"] == 92
     assert updated["blueprint"]["texture"] == "soft"
     assert updated["text"] == original["text"]
     assert updated["latest_music_version"] == 2
@@ -163,6 +164,8 @@ def test_selecting_history_persists_without_changing_memory_or_flower(tmp_path: 
     )
 
     assert selected["music"]["version"] == 1
+    assert selected["selected_blueprint"] == original["selected_blueprint"]
+    assert selected["selected_blueprint"] != revised["selected_blueprint"]
     assert selected["music"]["artifact_id"] == original["music"]["artifact_id"]
     assert selected["latest_music_version"] == 2
     assert selected["text"] == original["text"]
@@ -172,6 +175,24 @@ def test_selecting_history_persists_without_changing_memory_or_flower(tmp_path: 
         original["music"]["artifact_id"], revised["music"]["artifact_id"],
     ]
     assert service.list_creations(garden.id)[0]["music"]["version"] == 1
+
+
+def test_regeneration_uses_selected_version_blueprint(tmp_path: Path) -> None:
+    service, garden, _, _ = make_service(tmp_path)
+    initial = service.create_memory("比赛结束后终于松了一口气", garden.id, (2, 1))
+    revised = service.regenerate_music(initial["creation_id"], "更温暖一点")
+    service.select_music_version(initial["creation_id"], initial["music"]["artifact_id"])
+    observed = []
+
+    def editor(_text, blueprint, _instruction):
+        observed.append(blueprint.model_dump(mode="json"))
+        return blueprint.model_copy(update={"ending": "gentle fade out"})
+
+    service.blueprint_editor = editor
+    result = service.regenerate_music(initial["creation_id"], "结尾渐弱")
+    assert observed[0] == initial["selected_blueprint"]
+    assert observed[0] != revised["selected_blueprint"]
+    assert result["selected_blueprint"]["ending"] == "gentle fade out"
 
 
 def test_renaming_music_version_persists_without_changing_audio_or_flower(tmp_path: Path) -> None:

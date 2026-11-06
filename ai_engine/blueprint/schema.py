@@ -27,6 +27,11 @@ class MusicBlueprint(BaseModel):
     # 情绪信息
     # =========================
 
+    arrangement: str = ""
+    rhythm: str = ""
+    section_development: str = ""
+    ending: str = ""
+
     primary_emotion: str
     """
     用户当前最主要的情绪。

@@ -101,7 +101,14 @@ def _build_caption(blueprint: MusicBlueprint) -> str:
     # 音乐模型的核心控制信息，避免把用户经历或过多语义塞进第一版 caption。
     feeling = f"A feeling of {primary_emotion} with {_valence_description(blueprint.valence)}."
 
-    return " ".join((opening, feeling, f"{_energy_description(blueprint.energy)}.", progression))
+    details = (
+        ("Arrangement", blueprint.arrangement),
+        ("Rhythm", blueprint.rhythm),
+        ("Section development", blueprint.section_development),
+        ("Ending", blueprint.ending),
+    )
+    detail_caption = [f"{label}: {value.strip()}." for label, value in details if value.strip()]
+    return " ".join((opening, feeling, f"{_energy_description(blueprint.energy)}.", progression, *detail_caption))
 
 
 def blueprint_to_generation_spec(

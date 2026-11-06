@@ -217,9 +217,24 @@ class CreationService:
         if final is None:
             raise RuntimeError("创作缺少已归档的 Blueprint")
         record = self._with_version_history(record, final, persist=True)
+        selected_version = next(
+            version for version in record.music_versions
+            if version.audio_artifact_id == record.current_audio_artifact_id
+        )
+        selected_revision = next(
+            (revision for revision in record.blueprint_revisions
+             if revision.id == selected_version.revision_id),
+            None,
+        )
+        if selected_revision is not None:
+            base_blueprint = selected_revision.blueprint
+        elif selected_version.revision_id == final.revision_id:
+            base_blueprint = final.blueprint
+        else:
+            raise ValueError("当前音乐版本没有保存 Blueprint，无法基于此版本修改")
         edited = self.blueprint_editor(
             record.text,
-            record.music_blueprint.model_copy(deep=True),
+            base_blueprint.model_copy(deep=True),
             modification_text.strip(),
         )
         revision = BlueprintRevision(
@@ -338,6 +353,17 @@ class CreationService:
         )
         if selected_version is None:
             raise RuntimeError("当前音乐不属于创作的版本历史")
+        selected_revision = next(
+            (revision for revision in record.blueprint_revisions
+             if revision.id == selected_version.revision_id),
+            None,
+        )
+        selected_blueprint = (
+            selected_revision.blueprint
+            if selected_revision is not None
+            else final.blueprint if selected_version.revision_id == final.revision_id
+            else None
+        )
         planting = next(
             (
                 item for item in self.garden_store.list_plantings(record.garden_id)
@@ -349,6 +375,7 @@ class CreationService:
             "creation_id": str(record.creation_id),
             "text": record.text,
             "blueprint": record.music_blueprint.model_dump(mode="json"),
+            "selected_blueprint": selected_blueprint.model_dump(mode="json") if selected_blueprint else None,
             "flower": {
                 "artifact_id": str(flower.id),
                 "species": flower.species,

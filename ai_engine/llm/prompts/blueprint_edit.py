@@ -23,6 +23,7 @@ BLUEPRINT_EDIT_PROMPT = """
 5. 不能无故大幅改变整体音乐设计、情绪、调性、乐器或场景。
 6. original_text 用于理解最初创作意图，但不能忽略用户当前明确提出的修改要求。
 7. 本次修改针对音乐设计参数，不要声称已经修改或生成了真实音频。
+8. 用英文简洁描述编配、节奏、段落发展和结尾；修改相关细节时更新对应字段，保留其他字段。
 
 用户最初记录的经历：
 
@@ -64,7 +65,11 @@ BLUEPRINT_EDIT_PROMPT = """
     "instruments":[],
     "texture":"",
     "scene":"",
-    "progression":""
+    "progression":"",
+    "arrangement":"",
+    "rhythm":"",
+    "section_development":"",
+    "ending":""
 }}
 
 """

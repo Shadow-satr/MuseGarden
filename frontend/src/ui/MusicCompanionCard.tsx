@@ -18,14 +18,7 @@ const statusLabel: Record<string, string> = {
   uncertain: "暂不确定",
 };
 
-const assessmentLabel: Record<string, string> = {
-  supported: "得到支持",
-  partially_supported: "部分得到支持",
-  uncertain: "暂不确定",
-  not_supported: "未得到支持",
-};
-
-export function MusicCompanionCard({ audioArtifactId, version, modificationText }: MusicCompanionCardProps) {
+export function MusicCompanionCard({ audioArtifactId }: MusicCompanionCardProps) {
   const [result, setResult] = useState<MusicCompanionInterpretation | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState("");
@@ -64,14 +57,6 @@ export function MusicCompanionCard({ audioArtifactId, version, modificationText 
     {result && <div className="music-companion-content">
       <p className="music-companion-introduction">{result.narrative.professional_introduction}</p>
       <p className="music-companion-character">{result.narrative.mood_and_character}</p>
-
-      {version && version > 1 && modificationText && <section className="music-companion-difference" aria-label={`V${version} 相对上一版的变化`}>
-        <h4>相对上一版</h4>
-        <p>这次修改：{modificationText}</p>
-        {result.narrative.intent_alignment.map((item) => <p key={item.intent}>
-          <strong>{assessmentLabel[item.assessment] ?? "需进一步确认"}</strong>：{item.explanation}
-        </p>)}
-      </section>}
 
       <section>
         <h4>编配构成</h4>

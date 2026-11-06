@@ -94,6 +94,14 @@ export function FlowerDetailOverlay({
         </div>
         <blockquote><span>留存的片段</span>{memory.text}</blockquote>
 
+        <details className="blueprint-details">
+          <summary>查看当前音乐的 Blueprint</summary>
+          <p>当前选择：{memory.music?.version ? `V${memory.music.version}` : "音乐版本"}，以下为生成该版本时的设定。</p>
+          {memory.selected_blueprint
+            ? <pre>{JSON.stringify(memory.selected_blueprint, null, 2)}</pre>
+            : <p>该版本的 Blueprint 未保存在记录中。</p>}
+        </details>
+
         <section className="music-version-section" aria-labelledby="music-version-title">
           <div className="music-version-heading">
             <div>

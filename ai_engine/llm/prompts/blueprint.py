@@ -42,7 +42,11 @@ BLUEPRINT_PROMPT = """
 
     "scene":"",
 
-    "progression":""
+    "progression":"",
+    "arrangement":"",
+    "rhythm":"",
+    "section_development":"",
+    "ending":""
 }}
 
 

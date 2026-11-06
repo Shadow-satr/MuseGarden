@@ -34,6 +34,17 @@ blueprint = MusicBlueprint(
 original_blueprint = blueprint.model_dump(mode="json")
 spec = blueprint_to_generation_spec(blueprint)
 
+def test_detailed_directions_reach_music_caption():
+    detailed = blueprint.model_copy(update={
+        "arrangement": "piano leads over strings",
+        "rhythm": "gentle syncopation",
+        "section_development": "strings enter in the middle",
+        "ending": "a quiet fade",
+    })
+    caption = blueprint_to_generation_spec(detailed).caption
+    for direction in (detailed.arrangement, detailed.rhythm, detailed.section_development, detailed.ending):
+        assert direction in caption
+
 # 核心字段映射和默认值。
 assert isinstance(spec, MusicGenerationSpec)
 assert spec.bpm == 92

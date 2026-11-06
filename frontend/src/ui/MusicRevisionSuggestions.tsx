@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { generateMusicRevisionSuggestions, type MusicRevisionSuggestion } from "../api/creation";
 
@@ -9,16 +9,28 @@ interface MusicRevisionSuggestionsProps {
 
 export function MusicRevisionSuggestions({ audioArtifactId, onUseSuggestion }: MusicRevisionSuggestionsProps) {
   const [suggestions, setSuggestions] = useState<MusicRevisionSuggestion[]>([]);
+  const [seenTitles, setSeenTitles] = useState<string[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
+  const requestVersion = useRef(0);
 
-  useEffect(() => { setSuggestions([]); setStatus("idle"); }, [audioArtifactId]);
+  useEffect(() => {
+    setSuggestions([]);
+    setSeenTitles([]);
+    setStatus("idle");
+    return () => { requestVersion.current += 1; };
+  }, [audioArtifactId]);
 
   const refresh = async () => {
     setStatus("loading");
+    const request = ++requestVersion.current;
     try {
-      setSuggestions(await generateMusicRevisionSuggestions(audioArtifactId, suggestions.map((item) => item.title)));
+      const next = await generateMusicRevisionSuggestions(audioArtifactId, seenTitles);
+      if (request !== requestVersion.current) return;
+      setSuggestions(next);
+      setSeenTitles((previous) => [...previous, ...next.map((item) => item.title)].slice(-12));
       setStatus("idle");
     } catch {
+      if (request !== requestVersion.current) return;
       setStatus("error");
     }
   };
@@ -30,7 +42,7 @@ export function MusicRevisionSuggestions({ audioArtifactId, onUseSuggestion }: M
         {status === "loading" ? "正在构思…" : suggestions.length ? "换一组建议" : "给我 3 条建议"}
       </button>
     </div>
-    {status === "error" && <p className="creation-feedback creation-error">建议暂时无法生成，请稍后再试。</p>}
+    {status === "error" && <p className="creation-feedback creation-error">暂时无法根据当前音乐解读生成建议，请重试。</p>}
     {suggestions.length > 0 && <div className="music-suggestion-list">
       {suggestions.map((item) => <article key={item.title}>
         <h5>{item.title}</h5><p>{item.rationale}</p>
