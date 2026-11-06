@@ -215,6 +215,19 @@ FLOWER_REFERENCES: dict[FlowerSpecies, FlowerReference] = {
     ),
 }
 
+for species, source, name in (
+    ("cosmos", "daisy", "波斯菊"),
+    ("poppy", "tulip", "虞美人"),
+    ("bellflower", "lily", "风铃草"),
+    ("cherry_blossom", "wildflower", "樱花"),
+    ("camellia", "rose", "山茶花"),
+    ("aster", "daisy", "紫苑"),
+    ("lotus", "lily", "莲花"),
+):
+    FLOWER_REFERENCES[species] = FLOWER_REFERENCES[source].model_copy(
+        update={"species": species, "display_name": name}, deep=True
+    )
+
 
 def get_flower_reference(species: FlowerSpecies | str) -> FlowerReference:
     """按稳定 species token 查询花卉参考，并返回独立数据副本。"""

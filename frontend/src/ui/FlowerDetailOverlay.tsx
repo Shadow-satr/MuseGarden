@@ -20,7 +20,25 @@ interface FlowerDetailOverlayProps {
   onRenameVersion?: (audioArtifactId: string, displayName: string) => Promise<boolean>;
 }
 
-const MAX_REVISION_LENGTH = 500;
+const MAX_REVISION_LENGTH = 10000;
+const FLOWER_NAMES: Record<string, string> = {
+  rose: "玫瑰",
+  peony: "牡丹",
+  sunflower: "向日葵",
+  tulip: "郁金香",
+  hydrangea: "绣球花",
+  lily: "百合",
+  daisy: "雏菊",
+  lavender: "薰衣草",
+  wildflower: "野花",
+  cosmos: "波斯菊",
+  poppy: "虞美人",
+  bellflower: "风铃草",
+  cherry_blossom: "樱花",
+  camellia: "山茶花",
+  aster: "紫苑",
+  lotus: "莲花",
+};
 
 export function FlowerDetailOverlay({
   status, memory, error, revisionStatus, revisionError, selectingAudioId,
@@ -68,10 +86,10 @@ export function FlowerDetailOverlay({
 
       {status === "success" && memory && <div className="creation-result">
         <div className="flower-memory-hero">
-          <div className="flower-memory-aura"><FlowerPortrait species={memory.flower.species} renderSpec={memory.flower.render_spec} /></div>
+          <div className="flower-memory-aura"><FlowerPortrait species={FLOWER_NAMES[memory.flower.species] ?? memory.flower.species} renderSpec={memory.flower.render_spec} /></div>
           <div className="flower-memory-labels">
             <span>MEMORY BLOOM</span>
-            <p className="flower-detail-species">{memory.flower.species}</p>
+            <p className="flower-detail-species">{FLOWER_NAMES[memory.flower.species] ?? memory.flower.species}</p>
           </div>
         </div>
         <blockquote><span>留存的片段</span>{memory.text}</blockquote>
@@ -173,7 +191,6 @@ export function FlowerDetailOverlay({
               rows={4}
               autoFocus
             />
-            <div className="creation-count">{instruction.length} / {MAX_REVISION_LENGTH}</div>
             {revisionStatus === "loading" && <p className="creation-feedback" role="status">正在调整你的音乐……</p>}
             {revisionStatus === "error" && <p className="creation-feedback creation-error" role="alert">{revisionError}</p>}
             <div className="creation-actions music-revision-actions">

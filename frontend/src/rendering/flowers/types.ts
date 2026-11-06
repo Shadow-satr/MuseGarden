@@ -7,7 +7,14 @@ export type FlowerSpecies =
   | "lily"
   | "daisy"
   | "lavender"
-  | "wildflower";
+  | "wildflower"
+  | "cosmos"
+  | "poppy"
+  | "bellflower"
+  | "cherry_blossom"
+  | "camellia"
+  | "aster"
+  | "lotus";
 
 export type BloomShape =
   | "rosette"

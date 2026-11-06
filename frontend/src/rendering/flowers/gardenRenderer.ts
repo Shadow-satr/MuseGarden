@@ -28,7 +28,7 @@ function createBackground(spec: GardenRenderSpec) {
   return background;
 }
 
-export function createGardenScene(input: unknown, options: { includeBackground?: boolean } = {}): PixelGarden {
+export function createGardenScene(input: unknown, options: { includeBackground?: boolean; tileSize?: number } = {}): PixelGarden {
   assertGardenRenderSpec(input);
   const spec = input;
   const root = new Container();
@@ -47,10 +47,13 @@ export function createGardenScene(input: unknown, options: { includeBackground?:
     const anchor = new Container();
     anchor.label = `planting:${placement.planting_record_id}`;
     anchor.position.set(placement.pixel_x, placement.pixel_y);
-    const footprintScale = placement.flower_size === "large" ? 0.68 : 0.24;
-    anchor.scale.set(placement.scale * footprintScale);
+    const span = (options.tileSize ?? spec.cell_size) * (placement.flower_size === "large" ? 3 : 1);
+    const body = flower.bodyBounds;
+    // Fit the painted silhouette, independently of transparent margins and drifting pollen.
+    const fill = Math.min(0.95, Math.max(0.90, 0.92 + (placement.scale - 1) * 0.1));
+    anchor.scale.set(span * fill / Math.max(body.width, body.height));
     anchor.zIndex = placement.z_index;
-    flower.container.position.set(-24, -59);
+    flower.container.position.set(-body.x - body.width / 2, -body.y - body.height / 2);
     anchor.addChild(flower.container);
     root.addChild(anchor);
     flowers.push(flower);

@@ -15,7 +15,7 @@ interface CreationOverlayProps {
   onRetryRefresh: () => void;
 }
 
-const MAX_LENGTH = 500;
+const MAX_LENGTH = 10000;
 
 export function CreationOverlay({ plantSpotId, status, result, error, onCancel, onCreate, onRetryRefresh }: CreationOverlayProps) {
   const [text, setText] = useState("");
@@ -61,7 +61,6 @@ export function CreationOverlay({ plantSpotId, status, result, error, onCancel, 
           placeholder="比如，今天终于完成了比赛，感觉特别开心……"
           rows={6}
         />
-        <div className="creation-count">{text.length} / {MAX_LENGTH}</div>
         {status === "loading" && <p className="creation-feedback" role="status">正在创造你的记忆……</p>}
         {status === "error" && <p className="creation-feedback creation-error" role="alert">{error}</p>}
         {status === "result-error" && <p className="creation-feedback creation-error" role="alert">{error}。后端可能已完成创作，请回到花园检查；不要重复提交。</p>}

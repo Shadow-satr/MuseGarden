@@ -2,6 +2,8 @@
 
 from ai_engine.blueprint.progression import Progression
 from ai_engine.blueprint.schema import MusicBlueprint
+from hashlib import sha256
+from typing import get_args
 
 from flower_engine.reference_library import constrain_flower_spec
 from flower_engine.schema import (
@@ -265,7 +267,7 @@ def _glow(blueprint: MusicBlueprint) -> float:
     )
 
 
-def blueprint_to_flower_spec(blueprint: MusicBlueprint) -> FlowerSpec:
+def blueprint_to_flower_spec(blueprint: MusicBlueprint, variation_seed: int | None = None) -> FlowerSpec:
     """创建不依赖 LLM、网络、数据库或渲染器的花朵视觉规格。"""
     if not isinstance(blueprint, MusicBlueprint):
         raise TypeError("blueprint 必须是 MusicBlueprint 实例")
@@ -275,8 +277,14 @@ def blueprint_to_flower_spec(blueprint: MusicBlueprint) -> FlowerSpec:
     ]
     emotion = _normalize(blueprint.primary_emotion)
 
+    species = _select_species(blueprint)
+    if variation_seed is not None:
+        candidates = get_args(FlowerSpecies)
+        digest = sha256(str(variation_seed).encode()).digest()
+        species = candidates[int.from_bytes(digest[:8], "big") % len(candidates)]
+
     raw_spec = FlowerSpec(
-        species=_select_species(blueprint),
+        species=species,
         palette=_select_palette(blueprint),
         size=round(0.40 + blueprint.energy * 0.55, 2),
         petal_count=_petal_count(blueprint),

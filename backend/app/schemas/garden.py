@@ -28,13 +28,13 @@ class GardenPreviewResponse(BaseModel):
 
 class CreateMemoryRequest(BaseModel):
     garden_id: UUID
-    text: str = Field(min_length=1, max_length=2000)
+    text: str = Field(min_length=1, max_length=10000)
     x: int = Field(strict=True)
     y: int = Field(strict=True)
 
 
 class RegenerateMusicRequest(BaseModel):
-    modification_text: str = Field(min_length=1, max_length=500)
+    modification_text: str = Field(min_length=1, max_length=10000)
 
 
 class SelectMusicVersionRequest(BaseModel):

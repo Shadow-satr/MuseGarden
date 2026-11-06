@@ -6,6 +6,7 @@ import { assertFlowerRenderSpec } from "./validate";
 
 export interface PixelFlower {
   container: Container;
+  bodyBounds: { x: number; y: number; width: number; height: number };
   update(elapsedMs: number): void;
   destroy(): void;
 }
@@ -58,20 +59,23 @@ export function createPixelFlower(input: unknown): PixelFlower {
   const shadow = new Graphics().ellipse(24, 59, 12, 3).fill({ color: "#0D1711", alpha: 0.34 });
   layers.shadow.addChild(shadow);
 
-  drawFlowerTemplate(spec, layers);
+  const bloom = drawFlowerTemplate(spec, layers);
+  const { x, y, width, height } = root.getLocalBounds();
   drawDecoration(spec, layers.decoration);
+  layers.decoration.children.forEach((detail) => { detail.y += bloom.y - 30; });
 
   const glow = new Graphics()
-    .circle(24, 22, Math.max(5, Math.round(spec.animation.glow_radius_ratio * 70)))
+    .circle(bloom.x, bloom.y, Math.max(5, Math.round(spec.animation.glow_radius_ratio * 70)))
     .fill({ color: spec.colors.glow, alpha: spec.animation.glow_opacity * 0.25 });
   layers.glow.addChild(glow);
 
   const particleLayout = buildParticleLayout(spec.variation_seed);
   const particles = particleLayout.map((entry) => {
     const particle = new Graphics().rect(-1, -1, 2, 2).fill(spec.colors.particle);
-    particle.position.set(entry.x, entry.y);
+    const y = entry.y + bloom.y - 22;
+    particle.position.set(entry.x, y);
     layers.particles.addChild(particle);
-    return { particle, ...entry };
+    return { particle, ...entry, y };
   });
   layers.particles.visible = spec.animation.particle_rate > 0;
 
@@ -100,6 +104,7 @@ export function createPixelFlower(input: unknown): PixelFlower {
 
   return {
     container: root,
+    bodyBounds: { x, y, width, height },
     update,
     destroy: () => root.destroy({ children: true }),
   };

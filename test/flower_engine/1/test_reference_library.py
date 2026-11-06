@@ -36,6 +36,8 @@ assert expected_species == {
     "daisy",
     "lavender",
     "wildflower",
+    "cosmos", "poppy", "bellflower", "cherry_blossom",
+    "camellia", "aster", "lotus",
 }
 assert set(FLOWER_REFERENCES) == expected_species
 

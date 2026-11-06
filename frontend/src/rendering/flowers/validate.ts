@@ -16,6 +16,8 @@ const SPECIES = new Set([
   "daisy",
   "lavender",
   "wildflower",
+  "cosmos", "poppy", "bellflower", "cherry_blossom",
+  "camellia", "aster", "lotus",
 ]);
 const BLOOM_SHAPES = new Set([
   "rosette", "rounded_layered", "radial_disc", "cup", "clustered_sphere",

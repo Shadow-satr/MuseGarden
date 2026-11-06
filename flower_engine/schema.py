@@ -23,6 +23,13 @@ FlowerSpecies: TypeAlias = Literal[
     "daisy",
     "lavender",
     "wildflower",
+    "cosmos",
+    "poppy",
+    "bellflower",
+    "cherry_blossom",
+    "camellia",
+    "aster",
+    "lotus",
 ]
 
 FlowerPalette: TypeAlias = Literal[

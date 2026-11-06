@@ -99,7 +99,14 @@ def test_blueprint_changes_visual_attributes_without_audio_input() -> None:
     assert visual_snapshot(first) == visual_snapshot(repeated)
     assert first.id != repeated.id  # 生成事件身份独立，视觉内容稳定
     assert visual_snapshot(first) != visual_snapshot(different)
-    assert first.flower_spec == blueprint_to_flower_spec(source)
+    assert first.flower_spec == blueprint_to_flower_spec(source, 73)
+
+
+def test_seeds_allow_variety_for_the_same_blueprint() -> None:
+    source = blueprint()
+    species = {blueprint_to_flower_spec(source, seed).species for seed in range(200)}
+    assert {"cosmos", "poppy", "bellflower", "cherry_blossom"} <= species
+    assert len(species) == 16
 
 
 def test_music_versions_do_not_change_persisted_flower(tmp_path: Path) -> None:

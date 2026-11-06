@@ -15,7 +15,7 @@
 |POST|/api/music-companion/{audio_id}/suggestions|seen_titles；修改建议|
 |DELETE|/api/gardens/{garden_id}/plantings/{planting_id}|挖除种植记录|
 
-请求模型约束：文字 1–2000 字，修改要求 1–500 字，版本名 1–60 字；坐标为严格整数。前端输入上限另见 CreationOverlay。典型校验错误 400、未找到 404、服务异常 503，具体以路由分支为准。
+请求模型约束：文字 1–10000 字，修改要求 1–10000 字，版本名 1–60 字；坐标为严格整数。前端输入上限另见 CreationOverlay。典型校验错误 400、未找到 404、服务异常 503，具体以路由分支为准。
 
 ## 请求及响应示意
 

@@ -1,5 +1,5 @@
 # 静态项目介绍页说明
 
-此目录包含 MuseGarden 的静态项目介绍页，入口为 `index.html`。它可以部署到 GitHub Pages、Cloudflare Pages 或其他静态网站托管平台。
+此目录的 `index.html` 是项目展示页的本地副本，使用 `../wiki-assets/current/` 中的界面截图。GitHub Pages 的发布入口是 `docs/index.html`，修改展示页时请同步这两个文件。
 
-Gitee 当前已下线 Pages 服务，因此本项目不能以 Gitee Pages 作为发布方式。该页面用于展示项目、功能截图、源码链接和本地运行方法；完整应用仍需在 Windows 本地启动 Ollama、ACE-Step、Garden API 和前端后使用。
+展示页介绍项目和运行方式，完整应用需在本机启动相关服务与模型。

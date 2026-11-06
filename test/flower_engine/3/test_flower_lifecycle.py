@@ -104,10 +104,10 @@ def test_create_for_final_creation_builds_and_persists_linked_flower(
     artifact = service.create_for_creation(final.id, 12345)
 
     assert artifact.creation_id == final.id
-    assert artifact.species == "tulip"
+    assert artifact.species == artifact.flower_spec.species
     assert artifact.variation_seed == 12345
-    assert artifact.flower_spec == blueprint_to_flower_spec(final.blueprint)
-    assert artifact.template_id == "tulip_v1"
+    assert artifact.flower_spec == blueprint_to_flower_spec(final.blueprint, 12345)
+    assert artifact.template_id == f"{artifact.species}_v1"
     assert flower_store.get(artifact.id) == artifact
     assert service.list_for_creation(str(final.id)) == [artifact]
     assert service.get_current_for_creation(final.id) == artifact

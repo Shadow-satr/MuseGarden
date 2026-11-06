@@ -42,8 +42,8 @@ describe("FlowerDetailOverlay", () => {
     const view = render(<FlowerDetailOverlay status="success" memory={memory} error="" {...props} />);
     expect(screen.getByRole("dialog", { name: "这朵花的记忆" })).toBeTruthy();
     expect(screen.getByText("雨停后在河边散步")).toBeTruthy();
-    expect(screen.getByText("lily")).toBeTruthy();
-    expect(screen.getByRole("img", { name: "lily 花朵图案" })).toBeTruthy();
+    expect(screen.getByText("百合")).toBeTruthy();
+    expect(screen.getByRole("img", { name: "百合 花朵图案" })).toBeTruthy();
     expect(view.container.querySelector("audio")?.getAttribute("src")).toBe(memory.music.url);
   });
 
@@ -65,15 +65,15 @@ describe("FlowerDetailOverlay", () => {
     expect(screen.queryByRole("button", { name: "▶ 播放音乐" })).toBeNull();
   });
 
-  it("edits music with a 500 character limit and keeps the original memory", async () => {
+  it("accepts longer music instructions and keeps the original memory", async () => {
     const revise = vi.fn().mockResolvedValue(true);
     const user = userEvent.setup();
     render(<FlowerDetailOverlay status="success" memory={memory} error="" {...props} onRevise={revise} />);
     await user.click(screen.getByRole("button", { name: "修改音乐" }));
     const input = screen.getByRole("textbox", { name: "修改要求" }) as HTMLTextAreaElement;
     fireEvent.change(input, { target: { value: "轻".repeat(510) } });
-    expect(input.value).toHaveLength(500);
-    expect(screen.getByText("500 / 500")).toBeTruthy();
+    expect(input.value).toHaveLength(510);
+    expect(screen.queryByText(/\/ 10000/)).toBeNull();
     fireEvent.change(input, { target: { value: "  更轻快，保留钢琴  " } });
     await user.click(screen.getByRole("button", { name: "生成新版音乐" }));
     await waitFor(() => expect(revise).toHaveBeenCalledWith("更轻快，保留钢琴"));

@@ -5,7 +5,7 @@ import type { GardenRenderSpec } from "../rendering/flowers/types";
 import { cameraPositionFor } from "./Camera";
 import { mapGardenSpecToWorld } from "./GardenMapLayout";
 import { PLOT_CELL_SIZE } from "./PlotCalibration";
-import { MUSE_GARDEN_TERRAIN } from "./TerrainMap";
+import { MUSE_GARDEN_TERRAIN, TERRAIN_CELL_SIZE } from "./TerrainMap";
 import { createTerrainLayer } from "./TerrainRenderer";
 import type { TerrainTextures } from "./TerrainTextures";
 
@@ -53,7 +53,7 @@ export class WorldScene {
     this.world.label = "world-camera-content";
     // GardenRenderSpec remains the source of dynamic flowers. Its temporary
     // grass background is replaced by the data-driven terrain layer.
-    this.garden = createGardenScene(mapGardenSpecToWorld(spec), { includeBackground: false });
+    this.garden = createGardenScene(mapGardenSpecToWorld(spec), { includeBackground: false, tileSize: TERRAIN_CELL_SIZE });
     this.cellSize = PLOT_CELL_SIZE;
     this.viewport = gardenViewportSize(spec);
     this.worldSize = mapWorldContentSize();

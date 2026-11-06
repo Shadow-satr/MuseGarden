@@ -149,7 +149,7 @@ describe("Garden World shell", () => {
     expect((screen.getByRole("button", { name: "开始创作" }) as HTMLButtonElement).disabled).toBe(true);
     await user.type(textarea, "今天很开心");
     expect(textarea.value).toBe("今天很开心");
-    expect(screen.getByText("5 / 500")).toBeTruthy();
+    expect(screen.queryByText(/\/ 10000/)).toBeNull();
 
     await user.click(screen.getByRole("button", { name: "取消" }));
     expect(screen.queryByRole("dialog")).toBeNull();
@@ -269,8 +269,8 @@ describe("Garden World shell", () => {
     act(() => world.interact?.({ kind: "plant-spot", id: "spot:4,2", prompt: "种下记忆" }));
     const textarea = screen.getByRole("textbox", { name: "写下这段记忆" }) as HTMLTextAreaElement;
     fireEvent.change(textarea, { target: { value: "记".repeat(505) } });
-    expect(textarea.value).toHaveLength(500);
-    expect(screen.getByText("500 / 500")).toBeTruthy();
+    expect(textarea.value).toHaveLength(505);
+    expect(screen.queryByText(/\/ 10000/)).toBeNull();
     fireEvent.change(textarea, { target: { value: "  今天完成比赛  " } });
     await user.click(screen.getByRole("button", { name: "开始创作" }));
     expect(createMock).toHaveBeenCalledWith("garden-1", { plantSpotId: "spot:4,2", text: "今天完成比赛" }, expect.any(AbortSignal));

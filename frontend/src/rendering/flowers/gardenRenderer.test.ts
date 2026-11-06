@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { Container } from "pixi.js";
 
 import gardenPreview from "../../../../development/fixtures/garden-preview-spec.json";
 import { createGardenScene } from "./gardenRenderer";
@@ -27,7 +28,6 @@ describe("Garden renderer contract", () => {
       expect(child).toBeTruthy();
       expect(child!.x).toBe(placement.pixel_x);
       expect(child!.y).toBe(placement.pixel_y);
-      expect(child!.scale.x).toBeCloseTo(placement.scale * 0.24);
       expect(child!.zIndex).toBe(placement.z_index);
     }
 
@@ -48,9 +48,27 @@ describe("Garden renderer contract", () => {
       placement_schema_version: "terrain-v1" as const,
       occupied_tiles: occupied,
     };
-    const scene = createGardenScene({ ...gardenPreview, flowers: [large] });
-    const child = scene.container.children.find((entry) => entry.label === "planting:large-planting");
-    expect(child?.scale.x).toBeCloseTo(source.scale * 0.68);
+    const scene = createGardenScene({ ...gardenPreview, flowers: [large] }, { tileSize: 16 });
+    const smallScene = createGardenScene({ ...gardenPreview, flowers: [source] }, { tileSize: 16 });
+    expect(scene.container.children[1].scale.x).toBeCloseTo(smallScene.container.children[1].scale.x * 3);
+    smallScene.destroy();
+    scene.destroy();
+  });
+
+  it("centers the painted body of every species inside its terrain tile", () => {
+    const scene = createGardenScene(gardenPreview, { includeBackground: false, tileSize: 16 });
+    for (const anchor of scene.container.children) {
+      const flower = (anchor as Container).children[0] as Container;
+      for (const layer of flower.children) {
+        if (["glow", "particles", "decoration"].includes(layer.label)) layer.visible = false;
+      }
+      const bounds = anchor.getBounds();
+      expect(Math.max(bounds.width, bounds.height)).toBeGreaterThanOrEqual(16 * 0.90 - 0.001);
+      expect(bounds.minX).toBeGreaterThan(anchor.x - 8);
+      expect(bounds.maxX).toBeLessThan(anchor.x + 8);
+      expect(bounds.minY).toBeGreaterThan(anchor.y - 8);
+      expect(bounds.maxY).toBeLessThan(anchor.y + 8);
+    }
     scene.destroy();
   });
 

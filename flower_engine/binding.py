@@ -18,7 +18,7 @@ def build_flower_artifact_from_blueprint(
     creation_id: UUID | None = None,
 ) -> FlowerArtifact:
     """以 Blueprint 快照和显式 seed 决定视觉，返回尚未保存的 Artifact。"""
-    flower_spec = blueprint_to_flower_spec(blueprint)
+    flower_spec = blueprint_to_flower_spec(blueprint, variation_seed)
     variation = build_flower_variation(flower_spec, variation_seed)
     render_spec = build_flower_render_spec(flower_spec, variation)
     return create_flower_artifact(

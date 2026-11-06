@@ -36,6 +36,7 @@ __pycache__/
 /database/local/
 /database/preview/audio/
 /database/preview/*.json
+/development/data/demo/
 
 # Local model caches and disposable end-to-end verification output never belong
 # in the source repository. Keep them on the workstation for local playback.

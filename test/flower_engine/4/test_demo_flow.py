@@ -90,7 +90,7 @@ def test_create_memory_persists_all_four_engine_outputs(tmp_path: Path) -> None:
 
     assert seen_texts == ["比赛结束后终于松了一口气"]
     assert client.specs[0].bpm == result["blueprint"]["tempo"]
-    assert result["flower"]["species"] == "tulip"
+    assert result["flower"]["species"] == result["flower"]["render_spec"]["species"]
     assert result["music"]["version"] == 1
     assert service.audio_store.load_audio(result["music"]["artifact_id"]) == b"RIFF-test-v1"
     assert len(load_memories(tmp_path / "memories.json")) == 1
