@@ -1,5 +1,8 @@
 """MuseGarden 跨模块当前进度快照（更新至 2026-10-27）。
 
+历史快照提示（2026-11-06）：下文部分状态已过时，尤其是环境装饰、地图与界面部分。
+当前项目全貌见 MuseGarden_项目过程与完整总结.md；本文件保留历史记录。
+
 本文件记录实际接入状态，不替代各 Engine 的逐 Step 历史：
 AIEngine_progress.py、MusicEngine_progress.py、FlowerEngine_progress.py。
 """
