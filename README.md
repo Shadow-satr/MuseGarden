@@ -1,4 +1,71 @@
-# MuseGarden
+# MuseGarden 音迹花园
+
+**把一段文字变成音乐与花朵，把回忆种进自己的花园。**
+
+MuseGarden 是一个融合 AI 音乐创作与像素花园探索的个人项目。写下一段心情或经历，系统生成与之关联的音乐和花朵；回到花园时，可以重新聆听、查看记忆，或继续调整音乐。
+
+[项目展示页](https://shadow-satr.github.io/MuseGarden/) · [Gitee Wiki](https://gitee.com/shaaaadowwww/muse-garden/wikis/Home) · [项目完整总结](docs/architecture/MuseGarden_项目过程与完整总结.md) · [运行说明](frontend/README.md)
+
+> 以下为项目实际运行截图。展示页是静态介绍；完整音乐生成和花园交互需要在本机启动服务与模型。
+
+## 实机画面
+
+### 探索花园，种下记忆
+
+控制角色探索像素世界，在空地写下文字，生成音乐并种下属于这段记忆的花。
+
+![花园中的角色、花朵和河流](docs/wiki-assets/current/garden.png)
+
+<details>
+<summary>查看更多花园场景</summary>
+
+![花园建筑、道路和种植区域](docs/wiki-assets/current/village.png)
+
+</details>
+
+### 写下此刻
+
+靠近空地按 **E**，输入文字并开始创作。音乐生成需要本地服务和模型就绪。
+
+![输入文字创建音乐记忆](docs/wiki-assets/current/create.png)
+
+### 回访花朵与音乐
+
+靠近花朵按 **E**，查看文字记忆、播放音乐并选择已有版本。
+
+![花朵详情、文字记忆和音乐版本](docs/wiki-assets/current/detail.png)
+
+### 聆听、理解、继续创作
+
+音乐解读提供辅助聆听信息；想改变音乐时，可以参考建议或自行填写修改要求。
+
+<details>
+<summary>展开音乐解读与修改界面</summary>
+
+![音乐解读与分段聆听](docs/wiki-assets/current/interpretation.png)
+
+![音乐修改建议与输入框](docs/wiki-assets/current/revision.png)
+
+</details>
+
+### 查看整个花园
+
+按 **M** 打开地图，查看当前位置、种植区域、道路与水域。
+
+![花园地图和当前位置](docs/wiki-assets/current/map.png)
+
+## 基本操作
+
+| 操作 | 按键 |
+| --- | --- |
+| 移动 | WASD 或方向键 |
+| 在空地创作 / 查看花朵记忆 | E |
+| 打开或关闭地图 | M；Esc 可关闭 |
+| 移除附近的花朵 | Delete 或 Backspace |
+
+花朵移除后，种植位置可以重新使用；原始文字、音乐及其版本仍保存在本地归档。首次进入时有操作引导，也可通过“新手指引”再次查看。
+
+## 项目与运行
 
 正式代码：`ai_engine/`、`music_engine/`、`flower_engine/`、`application/`、`backend/`、`frontend/`。当前后端持久化数据在 `database/`，启动与导出入口在 `scripts/`。
 
